@@ -29,3 +29,27 @@ dispatch. Lines within scripts which start with "module" must be commented out.
 These lines also show the dependencies for each script. Outside of an HPC
 setting, it is usually easiest to use Bioconda environments 
 (https://bioconda.github.io/user/install.html) to handle dependencies.
+
+## Typical Workflow - Short Variant Identification
+
+Steps below would typically be run using a dispatcher script for parallel execution.
+
+For short variant identification, a common pre-processing workflow would be:
+
+1. run code/concat_fastqs.sh to generate a single mated pair of fastq files for
+each individual sample
+2. run code/fastq_filt_trim/bbduk_filt_trim_[PE/SE]_parallel.sh to clean fastq reads
+for paired-end or single-end reads, respectively
+3. run code/alignment/bowtie2_[PE/SE]_align_parallel.sh to align reads for
+paired end or single end reads using bowtie2 and create single sample bam alignment files
+4. run code/filt_bam_files_parallel.sh to filter bam files after alignment (this
+step is optional, as bcftools mpileup can perform filtering during variant calling)
+
+For variant calling, the following steps may then be performed after bam file
+generation:
+
+1. run code/call_variants/call_variants.sh
+2. run code/call_variants/filter_raw_vcf.sh
+3. run code/call_variants/rename_annotate_split_vcf.sh to (optionally) rename samples,
+predict variant transcriptional effects using a genome annotation file, and create subset 
+VCF files consisting of just indels and just SNPs.
