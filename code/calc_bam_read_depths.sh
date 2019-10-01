@@ -16,10 +16,10 @@ set -e
 
 #### SLURM job control #### 
 
-#SBATCH --job-name="read-depths" #name of the job submitted
+#SBATCH --job-name="calc-depths" #name of the job submitted
 #SBATCH --partition=short #name of the queue you are submitting job to
-#SBATCH --ntasks=28  #Number of overall tasks - overrides tasks per node
-#SBATCH --time=8:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
+#SBATCH --time=10:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -28,8 +28,8 @@ set -e
 
 #### User-defined constants ####
 
-in_dir="my_bam_files"
-out_file="depth_test.tsv.gz"
+in_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams_mq20_filt"
+out_file="/project/genolabswheatphg/bam_read_depths/SRW_merged_excap_GBS_bam_depths.tsv.gz"
 
 
 #### Executable ####

@@ -56,7 +56,7 @@ out_bcf="/project/genolabswheatphg/gvcfs/SRW_bw2_excap_GBS/SRW_bw2_excap_GBS_all
 samples="/home/brian.ward/repos/wheat_phg/sample_lists/SRW_reform_samples.txt"
 ncores=22
 mq_val=20
-#mg_val=5
+mg_val=5
 save_pile_out="false"
 
 
@@ -102,10 +102,10 @@ chroms=( $(cut -f 1 ${ref_gen}.fai) )
 ## By default, mpileup will skip reads that are unmapped, secondary,
 ##   PCR duplicates, or that failed QC.
 if [[ $save_pile_out == [Tt] ]]; then
-    time parallel -j $ncores bcftools mpileup -Ob -S $samples -q $mq_val -g 0 -a FORMAT/AD -f $ref_gen -b bam_list.txt -r {} -o mpi_bcfs/chrom_{}.bcf ::: "${chroms[@]}"
-    time parallel -j $ncores bcftools call -m -g 0 -Ou mpi_bcfs/chrom_{}.bcf -o chrom_var_bcfs/chrom_{}.bcf ::: "${chroms[@]}"
+    time parallel -j $ncores bcftools mpileup -Ob -S $samples -q $mq_val -g $mg_val -a FORMAT/AD -f $ref_gen -b bam_list.txt -r {} -o mpi_bcfs/chrom_{}.bcf ::: "${chroms[@]}"
+    time parallel -j $ncores bcftools call -m -g $mg_val -Ou mpi_bcfs/chrom_{}.bcf -o chrom_var_bcfs/chrom_{}.bcf ::: "${chroms[@]}"
 else
-    time parallel -j $ncores "bcftools mpileup -Ou -S $samples -q $mq_val -g 0 -a FORMAT/AD -f $ref_gen -b bam_list.txt -r {} | bcftools call -m -g 0 -Ou -o chrom_var_bcfs/chrom_{}.bcf" ::: "${chroms[@]}"
+    time parallel -j $ncores "bcftools mpileup -Ou -S $samples -q $mq_val -g $mg_val -a FORMAT/AD -f $ref_gen -b bam_list.txt -r {} | bcftools call -m -g $mg_val -Ou -o chrom_var_bcfs/chrom_{}.bcf" ::: "${chroms[@]}"
 fi
 
 ## Create list of single-chromosome variant BCFs

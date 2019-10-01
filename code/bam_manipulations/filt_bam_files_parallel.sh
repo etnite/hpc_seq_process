@@ -39,8 +39,12 @@ set -e
 #out_dir="/project/genolabswheatphg/alignments/SRW_filt_bams"
 #mq_thresh=20
 
-in_dir="/project/genolabswheatphg/alignments/KS_HRW_wholechrom_bw2_bams"
-out_dir="/project/genolabswheatphg/alignments/KS_HRW_filt_bams"
+#in_dir="/project/genolabswheatphg/alignments/KS_HRW_wholechrom_bw2_bams"
+#out_dir="/project/genolabswheatphg/alignments/KS_HRW_filt_bams"
+#mq_thresh=20
+
+in_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams"
+out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams_mq20_filt"
 mq_thresh=20
 
 
@@ -56,9 +60,7 @@ bam_file=$(ls -1 "${in_dir}"/*.bam | head -n $arr_ind | tail -n 1)
 bam_base=$(basename "${bam_file}")
 
 ## Filter input BAM file, sort and output
-samtools view -h "${bam_file}" \
-    -q $mq_thresh \
-    -f 2 |
+samtools view -h "${bam_file}" -q $mq_thresh |
     samtools sort -O BAM - -o "${out_dir}"/"${bam_base}"
 
 ## Index output BAM
