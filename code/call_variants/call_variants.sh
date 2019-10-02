@@ -87,7 +87,8 @@ fi
 printf '%s\n' "${bams_dir}"/*.bam > bam_list.txt
 
 ## Store list of chroms in array
-chroms=( $(cut -f 1 ${ref_gen}.fai) )
+if [[ ! -f "${ref_gen}".fai ]]; then samtools faidx "${ref_gen}"; fi
+chroms=( $(cut -f 1 "${ref_gen}".fai) )
 
 ## Then run variant calling pipeline on chromosomes in parallel
 ## There are a lot of options for mpileup and call - using some defaults for now
