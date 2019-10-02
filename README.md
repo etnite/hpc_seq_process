@@ -32,18 +32,21 @@ setting, it is usually easiest to use Bioconda environments
 
 ## Typical Workflow - Short Variant Identification
 
-Steps below would typically be run using a dispatcher script for parallel execution.
+This repository is primarily set up to use the samtools/bcftools variant calling pipeline. Steps below would typically be run using a dispatcher script for parallel execution.
 
 For short variant identification, a common pre-processing workflow would be:
 
-1. run code/concat_fastqs.sh to generate a single mated pair of fastq files for
-each individual sample
+1. run code/concat_fastqs/concat_[paired_]fastqs_parallel.sh to generate a single fastq file
+per sample for multiple single-end or paired input fastq files
 2. run code/fastq_filt_trim/bbduk_filt_trim_[PE/SE]_parallel.sh to clean fastq reads
 for paired-end or single-end reads, respectively
 3. run code/alignment/bowtie2_[PE/SE]_align_parallel.sh to align reads for
 paired end or single end reads using bowtie2 and create single sample bam alignment files
-4. run code/filt_bam_files_parallel.sh to filter bam files after alignment (this
-step is optional, as bcftools mpileup can perform filtering during variant calling)
+4. (optional) run code/bam_manipulations/filt_bam_files_parallel.sh to filter bam files after alignment
+(note that bcftools mpileup can perform this filtering on the fly, but this step may still be of use
+if creating gVCFs for use in GATK)
+5. (optional) - for further analysis in GATK, convert BAM files to single-sample gVCF files
+using code/gvcf_creation/create_single_samp_gvcf_parallel.sh
 
 For variant calling, the following steps may then be performed after bam file
 generation:
