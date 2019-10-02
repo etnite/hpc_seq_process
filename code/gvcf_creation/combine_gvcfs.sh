@@ -51,6 +51,7 @@ set -e
 in_dir="/project/genolabswheatphg/gvcfs/SRW_single_samp_bw2_excap_GBS_mq20"
 ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 out_gvcf="/project/genolabswheatphg/gvcfs/SRW_bw2_excap_GBS_mq20_multisamp.g.vcf.gz"
+ncores=1
 
 
 #### Executable ####
@@ -66,29 +67,35 @@ echo "Start time:"
 date
 
 ## Create output directory, cd to it, create subdirectory for single-chrom gVCFs
-out_dir=$(dirname "${out_vcf}")
+out_dir=$(dirname "${out_gvcf}")
 mkdir -p "${out_dir}"
 cd "${out_dir}"
-mkdir chrom_gvcfs
+mkdir -p "${out_dir}"/chrom_gvcfs
 
 ## Create list of input gVCF files
-printf '%s\n' "${in_dir}"/*.g.vcf.gz > in_gvcfs.list
+printf '%s\n' "${in_dir}"/*.g.vcf.gz > "${out_dir}"/in_gvcfs.list
 
 ## Store list of chroms into array
 if [[ ! -f "${ref_gen}".fai ]]; then samtools faidx "${ref_gen}"; fi
-chroms=( $(cut -f 1 "${ref_gen}".fai) )
+cut -f 1 "${ref_gen}".fai > "${out_dir}"/chrom_list.txt
 
 ## Run CombineGVCFs on chroms in parallel
-parallel --dryrun -j $ncores gatk --java-options "-Xmx3g" CombineGVCFs --reference "${ref_gen}" --variants in_gvcfs.list --intervals {} --output chrom_gvcfs/chrom_{}.g.vcf.gz ::: "${chroms[@]}"
+cat "${out_dir}"/chrom_list.txt | 
+    parallel --dryrun -j $ncores "gatk \
+         --java-options '-Xmx3g' CombineGVCFs \
+         --reference ${ref_gen} \
+         --variants in_gvcfs.list \
+         --intervals {} \
+         --output chrom_gvcfs/chrom_{}.g.vcf.gz" ::: "${chroms[@]}"
 
 ## Create list of resulting single-chrom gVCFs
-printf '%s\n' chrom_gvcfs/*.g.vcf.gz > chrom_gvcfs/chr_gvcfs.list
+#printf '%s\n' chrom_gvcfs/*.g.vcf.gz > chrom_gvcfs/chr_gvcfs.list
 
 ## Concatenate into single output gVCF
-gatk --java-options "-Xmx3g" GatherVcfs --INPUT chrom_gvcfs/chr_gvcfs.list --OUTPUT "${out_gvcf}"
-bcftools index "${out_gvcf}"
+#gatk --java-options "-Xmx3g" GatherVcfs --INPUT chrom_gvcfs/chr_gvcfs.list --OUTPUT "${out_gvcf}"
+#bcftools index "${out_gvcf}"
 
-rm -rf "${chrom_gvcfs}"
+#rm -rf "${chrom_gvcfs}"
 source deactivate
 
 echo
