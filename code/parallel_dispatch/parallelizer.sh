@@ -38,7 +38,7 @@
 
 #SBATCH --job-name="parallel-print" #name of the job submitted
 #SBATCH --partition=short #name of the queue you are submitting job to
-#SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
+#SBATCH --mail-user=jane.doe@isp.com #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
