@@ -10,8 +10,17 @@ set -e
 ## missing data would theoretically be allowed, while setting max_miss to 0 will only
 ## allow SNPs without any missing data
 ##
+## For depth filtering, this script uses the DP value in the INFO column. This
+## value is the total depth of reads that passed the quality control parameters
+## defined during SNP calling, (e.g. minimum mapq value). FORMAT DP values, if
+## present, are for raw read counts per sample.
+##
 ## snpgap will remove SNPs within n bases of an indel (or overlapping)
 ## indelgap will thin clusters of indels within n bases of each other, to only retain one
+##
+## BCFTools is designed to work with .bcf files. If .vcf files are supplied, it
+## first converts them to .bcf format internally. Therefore, using a .bcf file 
+## as input is faster, though BCF files are often larger than .vcf.gz files.
 ################################################################################
 
 
@@ -31,8 +40,10 @@ set -e
 
 #### User-defined constants ####
 
+## Note that SNP depth and proportion of missing data are highly correlated
+
 vcf_in="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
-vcf_out="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
+vcf_out="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2_filt.vcf.gz"
 taxa_list="none"
 min_maf=0.03
 max_miss=0.5
@@ -94,7 +105,7 @@ if [[ $remove_unal == [Tt] ]]; then
         --output-type u |
     bcftools view - \
         --targets ^UN \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || AVG(FORMAT/DP) < ${min_dp} || AVG(FORMAT/DP) > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -105,7 +116,7 @@ elif [[ $remove_unal == [Ff] ]]; then
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
     bcftools view - \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || AVG(FORMAT/DP) < ${min_dp} || AVG(FORMAT/DP) > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
