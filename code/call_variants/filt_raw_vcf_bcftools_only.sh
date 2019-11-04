@@ -43,10 +43,10 @@ set -e
 ## Note that SNP depth and proportion of missing data are highly correlated
 
 vcf_in="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
-vcf_out="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2_filt.vcf.gz"
+vcf_out="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2_filt08.vcf.gz"
 taxa_list="none"
 min_maf=0.03
-max_miss=0.5
+max_miss=0.8
 max_het=0.1
 min_dp=0
 max_dp=1e6
