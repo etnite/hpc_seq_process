@@ -42,15 +42,15 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
-vcf_out="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2_filt08.vcf.gz"
+vcf_in="/home/gbg_lab_admin/Array_60TB/wheat_exome_capture/bw2_ERSGGL_SRW_alignments/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
+vcf_out="/home/gbg_lab_admin/Array_60TB/wheat_exome_capture/bw2_ERSGGL_SRW_alignments/ERSGGL_SRW_merged_bw2_50miss_noUN_filt.vcf.gz"
 taxa_list="none"
 min_maf=0.03
-max_miss=0.8
+max_miss=0.5
 max_het=0.1
 min_dp=0
 max_dp=1e6
-remove_unal="false"
+remove_unal="true"
 snpgap=3
 indelgap=3
 
@@ -58,7 +58,6 @@ indelgap=3
 #### Executable #####
 
 module load bcftools
-#module load vcftools
 
 echo
 echo "Start time:"
@@ -104,7 +103,7 @@ if [[ $remove_unal == [Tt] ]]; then
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
     bcftools view - \
-        --targets ^UN \
+        --targets ^UN,Un \
         --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
