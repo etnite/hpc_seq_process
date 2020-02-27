@@ -1,5 +1,15 @@
 #!/bin/bash
 
+## Wrapper script for samtools_depth_summstats.py
+##
+## This script handles input and output streaming for
+## samtools_depth_summstats.py
+##
+## samtools_depth_summstats.py requires numpy, so here miniconda is
+## used to load the environment "py38" which contains the dependency
+####################################################################
+
+
 #### SLURM job control #### 
 
 #SBATCH --job-name="depth-stats" #name of the job submitted
@@ -16,16 +26,19 @@
 
 #### User-Defined Constants ####
 
-bam_list_file=""
+bam_list_file="/home/brian.ward/srw_bam_list.txt"
 max_dep=100
-out_file=""
+out_file="/project/guedira_seq_map/brian/srw_bam_depths.txt.gz"
 
 
 #### Executable ####
 
 module load samtools
+module load miniconda
+source activate py38
 
 samtools depth -m $max_dep -f "$bam_list_file" |
-	head -n 100 |
 	./samtools_depth_summstats.py |
 	gzip -c > "$out_file"
+
+source deactivate
