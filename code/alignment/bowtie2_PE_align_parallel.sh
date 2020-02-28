@@ -40,11 +40,15 @@
 #out_dir="/project/genolabswheatphg/alignments/KS_HRW_wholechrom_bw2_bams"
 #ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
-fastq_dir="/project/genolabswheatphg/filt_fastqs/wheatCAP_parents"
-samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/wheatCAP_samples_reform.txt"  
-out_dir="/project/genolabswheatphg/alignments/wheatCAP_wholechrom_bw2_bams" 
-ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa" 
+#fastq_dir="/project/genolabswheatphg/filt_fastqs/wheatCAP_parents"
+#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/wheatCAP_samples_reform.txt"  
+#out_dir="/project/genolabswheatphg/alignments/wheatCAP_wholechrom_bw2_bams" 
+#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa" 
 
+fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
+samps_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_reform_samples.txt"
+out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_composite_ref"
+ref="/project/genolabswheatphg/v1_refseq/compiled_seqs_noUn/T_aestivum_v1_w_translocs_noUn.fasta"
 
 #### Executable  ####
 

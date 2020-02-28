@@ -48,6 +48,6 @@ for line in fileinput.input():
         print(*out_list, sep = '\t', end = '\n')
 
     ## Print progress
-    line_count += 1
-    if line_count % 10000 == 0:
-        print(str(line_count/1000) + 'K positions processed', file = sys.stderr)
+    #line_count += 1
+    #if line_count % 10000 == 0:
+    #    print(str(line_count/1000) + 'K positions processed', file = sys.stderr)

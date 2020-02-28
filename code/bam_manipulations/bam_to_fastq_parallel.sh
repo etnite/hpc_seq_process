@@ -15,8 +15,8 @@
 ################################################################################      
 
 
-bams_file=""
-out_fastqs_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_merged_excap_GBS_bams"
+bams_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_bam_list.txt"
+out_fastqs_dir="/project/genolabswheatphg/test_1A_fastqs"
 
 
 #### Executable ####
@@ -26,6 +26,7 @@ echo "Start bam_to_fastq_parallel.sh"
 echo "Start time:"
 date
 
+module use /shared/7/modulefiles
 module load samtools
 samtools --version
 

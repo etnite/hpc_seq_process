@@ -38,7 +38,8 @@ module load miniconda
 source activate py38
 
 samtools depth -m $max_dep -f "$bam_list_file" |
-	./samtools_depth_summstats.py |
-	gzip -c > "$out_file"
+    head -n 100000 |
+    ./samtools_depth_summstats.py |
+    gzip -c > "$out_file"
 
 source deactivate
