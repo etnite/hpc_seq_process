@@ -26,20 +26,27 @@
 
 #### User-Defined Constants ####
 
-bam_list_file="/home/brian.ward/srw_bam_list.txt"
-max_dep=100
-out_file="/project/guedira_seq_map/brian/srw_bam_depths.txt.gz"
+bam_list_file="gbs_test_bamlist.txt"
+max_dep=200
+min_mean=0
+min_median=5
+max_dist=90
+#min_size=50
+#out_file="depth_test_out.txt"
 
 
 #### Executable ####
 
-module load samtools
-module load miniconda
-source activate py38
+#module load samtools
+#module load miniconda
+#source activate py38
 
 samtools depth -m $max_dep -f "$bam_list_file" |
-    head -n 100000 |
-    ./samtools_depth_summstats.py |
-    gzip -c > "$out_file"
+    ./samtools_depth_parse.jl -u $min_mean -m $min_median -d $max_dist |
+    head -n 1000 > test_out.bed
 
-source deactivate
+
+#    ./samtools_depth_summstats.py |
+#    gzip -c > "$out_file"
+
+#source deactivate
