@@ -10,7 +10,8 @@ using Statistics
 
 function parse_commandline()
 
-    s = ArgParseSettings(description = "Script for parsing the output of samtools depth. The user can specify a minimum
+    s = ArgParseSettings(description = "Script for parsing the output of samtools
+depth. Reads from stdin and writes to stdout. The user can specify a minimum
 mean and/or median read depth to retain each position. The maximum distance
 parameter determines the physical distance up to which blocks of contiguous
 positions passing the filtering thresholds are merged together, in a manner
@@ -18,24 +19,31 @@ similar to bedtools merge. The output is a .bed file of regions passing the
 user-specified filters, merged up to the specified distance.\n\n
 
 This script uses the output of samtools depth to 'protect' its input, obviating
-the need for some forms of error checking\n\n
-    
+the need for some forms of error checking. Samtools depth will also never output a
+read depth of more than 8,000 for a position.\n\n
+
 The script may miss one interval, if a window is opened at the end of the last
 chromosome, and isn't closed before end-of-file")
 
     @add_arg_table s begin
         "--min-mean", "-u"
             help = "Float - minimum mean value of reads to include a position in output"
-            required = true
+            required = false
             arg_type = Float32
+            default = Float32(0)
+            range_tester = x -> x >= 0
         "--min-mdn", "-m"
             help = "Float - minimum median value of reads to include a position in output"
-            required = true
+            required = false
             arg_type = Float32
+            default = Float32(0)
+            range_tester = x -> x >= 0
         "--max-dist", "-d"
             help = "Integer - maximum distance over which to merge regions in output .bed file"
-            required = true
+            required = false
             arg_type = UInt32
+            default = UInt32(0)
+            range_tester = x -> x >= 0
     end
     return parse_args(s)
 end
@@ -48,18 +56,22 @@ function main()
     min_mdn = parsed_args["min-mdn"]
     dist = parsed_args["max-dist"]
 
+    ## Default mean and median values
+    μ = UFloat32(0)
+    mdn = UFloat32(0)
+
     ## Initialize position variables
     open_pos = UInt32
     last_pos = Int32(0 - dist)
 
-    ## Open std input stream; iterate through lines
+    ## Iterate through stdin lines
     for line in eachline(stdin)
 
-        ## Get mean and median vals
+        ## Get mean and median vals if necessary
         chopped = split(line)
-        depths = parse.(UInt16, chopped[3:end])
-        μ = mean(depths)
-        mdn = median(depths)
+        if min_μ > 0 || min_mdn > 0; depths = parse.(UInt16, chopped[3:end]); end
+        if min_μ > 0; μ = mean(depths); end
+        if min_mdn > 0; mdn = median(depths); end
 
         ## Test if the position's mean and median depths are above thresholds
         if μ >= min_μ && mdn >= min_mdn
