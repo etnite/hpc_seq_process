@@ -57,8 +57,8 @@ function main()
     dist = parsed_args["max-dist"]
 
     ## Default mean and median values
-    μ = UFloat32(0)
-    mdn = UFloat32(0)
+    μ = Float32(0)
+    mdn = Float32(0)
 
     ## Initialize position variables
     open_pos = UInt32

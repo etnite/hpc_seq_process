@@ -17,7 +17,7 @@ set -e
 #SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=1:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=jane.doe@isp.com #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -37,10 +37,10 @@ bam_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_exc
 ## Maximum gap for bedtools merge
 mq_min=20
 max_dep=200
-min_dep=50
-max_gap=100
+min_dep=250
+max_gap=150
 
-out_bed="/home/brian.ward/test_out.bed"
+out_bed="/project/genolabswheatphg/SRW_depth_test/awk_test/excap_GBS_dp50.bed"
 
 
 #### Executable ####
@@ -48,9 +48,13 @@ out_bed="/home/brian.ward/test_out.bed"
 module load samtools
 module load bedtools
 
+echo
+echo "Start time:"
+date
+
 ## Write the list of .bam files
 out_dir=$(dirname "$out_bed")
-echo "$out_dir"
+mkdir -p "$out_dir"
 if [[ -f "$bam_list" ]]; then
     cp "$bam_list" "$out_dir"/temp_bam_list.txt
 else
@@ -58,13 +62,22 @@ else
 fi
 
 ## Perform depth calculation
-samtools depth -Q $mq_min -f "$out_dir"/temp_bam_list.txt |
-    awk '{sum=0; for(i=3; i<=NF; i++) { sum+= $i } print($1,$2-1,$2,sum)}' |
-    awk -v md=$min_dep 'BEGIN {OFS = "\t"} $4 > md {print($1, $2, $3, $4)}' | head -n 1000 > "$out_dir"/temp.bed
- 
+samtools depth -r 1A -Q $mq_min -f "$out_dir"/temp_bam_list.txt |
+    awk '{sum=0; for(i=3; i<=NF; i++) { sum+= $i } print($1, $2-1, $2, sum)}' |
+    awk -v md=$min_dep 'BEGIN {OFS = "\t"} $4 > md {print($1, $2, $3, $4)}' > "$out_dir"/temp.bed
+
 bedtools merge -d $max_gap -i "$out_dir"/temp.bed > "$out_bed"
+
+#rm "$out_dir"/temp_bam_list.txt
+rm "$out_dir"/temp.bed
 
 ## Run the depth calculation
 #samtools depth -Q $mq_min -f "$out_dir"/temp_bam_list.txt | 
 #    awk '{for(i=3;i<=NF;i++) sum+=; print($1,$2,sum); sum=0}' | 
-#    awk -v md=$min_dep '$3 > md' | awk '$2-lastpos>500 {print lastchr,lastpos,lastdep"\n"$1,$2,$3} {lastchr=$1} {lastpos=$2} {lastdep=$3}' | tail -n +2 | paste - -
+#    awk -v md=$min_dep '$3 > md' |
+# awk '$2-lastpos>500 {print lastchr,lastpos,lastdep"\n"$1,$2,$3} {lastchr=$1} {lastpos=$2} {lastdep=$3}' |
+# tail -n +2 | paste - -
+
+echo
+echo "End time:"
+date
