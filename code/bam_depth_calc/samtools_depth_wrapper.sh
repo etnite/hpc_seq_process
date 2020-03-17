@@ -1,9 +1,20 @@
 #!/bin/bash
 
-## Wrapper script for samtools_depth_summstats.py
+## Wrapper script for samtools_depth_parse.jl
 ##
 ## This script handles input and output streaming for samtools_depth_parse.jl
 ## and allows for running the parser in parallel across a list of genome regions
+##
+## The samtools depth command outputs a large matrix, where: 
+##   * each cell is a tally of read depths
+##   * each row is a chromosome/position combination
+##   * each column is a sample
+## samtools_depth_parse.pl parses this output, to discard positions where 
+## mean and/or median read depth falls below user-specified thresholds. It then
+## merges contiguous positions passing the thresholds into regions. A maximum
+## distance over which to merge positions into regions can be specified. Finally,
+## following merging any regions that are smaller than a user-defined value are
+## discarded.
 ##
 ## Regions of any size can be used (using for instance bedtools makewindows).
 ## But keep this in mind:
@@ -18,12 +29,12 @@
 
 #### SLURM job control #### 
 
-#SBATCH --job-name="jul-dep" #name of the job submitted
+#SBATCH --job-name="par-dep" #name of the job submitted
 #SBATCH --partition=short #name of the queue you are submitting job to
 #SBATCH --nodes=1 #Number of nodes
     ##SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
 #SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=36:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -38,17 +49,27 @@
 bam_list_file="none"
 bam_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams_mq20_filt"
 
-## Path to 
-ref_gen=""
+## Path to reference genome .fasta file (for finding chromosome names)
+ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
+## The following parameters are for:
+## 1) Maximum read depth PER SAMPLE, after which samtools depth stops counting
+## 2) Minimum mapping quality to consider a read
+## 3) Min mean depth to include a position, calculated ACROSS SAMPLES
+## 4) Min median depth to include a position, calculated ACROSS SAMPLES 
+## 5) Maximum distance between features in output .bed file. If two features are closer together
+##    than this number, they are merged into a single feature (similar to -d parameter of
+##    bedtools merge)
+## 6) Minimum feature size in output .bed file - features smaller than this are discarded
 max_dep=200
 min_qual=20
 min_mean=0
 min_median=5
-max_dist=150
+max_dist=250
 min_size=50
 
-out_bed="/project/genolabswheatphg/SRW_depth_test/julia_test/julia_1A_depth_regions.bed"
+## Path to output .bed file
+out_bed="/project/genolabswheatphg/SRW_depth_test/julia_parallel/SRW_min_mdn5_maxdist250_minsize_50_dp.bed"
 
 
 #### Executable ####
@@ -77,10 +98,10 @@ cut -f 1 "${ref_gen}".fai > "$out_dir"/regions.txt
 ## Run depth calculation; Lots going on here
 ## Sometimes easier to give parallel a function, but in this case there would
 ## be many positional args to supply
-parallel -j $SLURM_NTASKS - a "$out_dir"/regions.txt \
+parallel -j $SLURM_NTASKS -a "$out_dir"/regions.txt \
     "samtools depth -r {} -m $max_dep -Q $min_qual -f ${out_dir}/temp_bam_list.txt |
     ./samtools_depth_parse.jl -u $min_mean -m $min_median -d $max_dist |
-    awk '($3 - $2) >= $min_size' > ${out_dir}/region_depths/{}.bed" #::: "${chroms[@]}"
+    awk '(\$3 - \$2) >= $min_size' > ${out_dir}/region_depths/{}.bed" #::: "${chroms[@]}"
 
 #    ./samtools_depth_summstats.py |
 #    gzip -c > "$out_bed"
