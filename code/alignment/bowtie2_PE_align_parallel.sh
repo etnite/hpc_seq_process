@@ -2,6 +2,10 @@
 
 ## Paired end alignment using Bowtie2
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script aligns a single pair of mated fastq files.
 ## It takes a single string (usually a sample name) as its only positional
 ## argument. Then it searches for corresponding fastq files using the pattern:

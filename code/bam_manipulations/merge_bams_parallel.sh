@@ -2,6 +2,10 @@
 
 ## Merge BAM files from same sample
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script will recursively search for alignment (BAM) files within an input
 ## directory, and will then merge together all files whose names contain a match 
 ## to a sample name read in from a file (one sample name per line).

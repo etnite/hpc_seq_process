@@ -2,6 +2,12 @@
 
 Scripts for processing sequencing data on HPC clusters
 
+## Contact Information
+
+Brian Ward  
+brian@brianpward.net  
+https://github.com/etnite
+
 ## Description
 
 This repository is a collection of scripts for processing sequencing data

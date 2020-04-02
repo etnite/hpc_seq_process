@@ -2,6 +2,10 @@
 
 ## Parallelize script with GNU Parallel
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script is a "universal parallelizer" - it's intended function is to
 ## enable the parallel execution of another script WHEN DIFFERENT PROCESSES
 ## CAN BE RUN INDEPENDENTLY, such as when running the same process on different

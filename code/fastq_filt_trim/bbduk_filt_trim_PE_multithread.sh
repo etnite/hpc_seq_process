@@ -2,6 +2,10 @@
 
 ## Quality filtering and adapter trimming using BBDuk
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This version of the script runs BBDuk using its built-in multi-threading.
 ## It works well on a single machine/node, but it is difficult to scale beyond
 ## a single node on an HPC cluster. For that, it is better to use the similar

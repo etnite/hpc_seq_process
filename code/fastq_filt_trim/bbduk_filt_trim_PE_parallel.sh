@@ -2,6 +2,10 @@
 
 ## Paired-end FASTQ quality filtering and adapter trimming using BBDuk
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This version of the script runs BBDuk on a single pair of mated fastq files.
 ## It takes a single string (usually a sample name) as its only positional
 ## argument. Then it searches for corresponding fastq files using the pattern:

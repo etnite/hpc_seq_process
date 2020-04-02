@@ -2,6 +2,10 @@
 
 ## Index a reference genome for alignment with Hisat2
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script will take a single positional argument - the path to a reference
 ## genome fasta file, and output a Hisat2 index with the same base name 
 ## (i.e. the index file names will have the same format as the input reference 

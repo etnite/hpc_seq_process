@@ -2,6 +2,10 @@
 
 ## Download FASTQ files from ENA
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script is designed to download paired FASTQ files from the ENA using an
 ## FTP connection (though it can also use Aspera if configured). This should be
 ## faster than downloading from the NCBI sequence read archive, as it avoids

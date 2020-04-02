@@ -5,6 +5,10 @@ set -e
 
 ## Filter VCF file - single threaded
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## NOTE: The max_miss parameter works in an opposite manner of the VCFTools
 ## implementation, which I find unintuitive. Here, if max_miss is set to 1, SNPs with 100%
 ## missing data would theoretically be allowed, while setting max_miss to 0 will only

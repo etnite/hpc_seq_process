@@ -2,6 +2,10 @@
 
 ## Wrapper script for samtools_depth_parse.jl
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script handles input and output streaming for samtools_depth_parse.jl
 ## and allows for running the parser in parallel across a list of genome regions
 ##

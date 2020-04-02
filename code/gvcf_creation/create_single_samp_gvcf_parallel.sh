@@ -3,6 +3,10 @@ set -e
 
 ## Create gVCF from single-sample BAM file
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## NOTE: Older versions of GATK cannot handle chromosomes as large as those found
 ## in wheat. Here, a Conda environment named "gatk" is used, as the GATK version
 ## installed on Ceres is not recent enough. This environment must contain the

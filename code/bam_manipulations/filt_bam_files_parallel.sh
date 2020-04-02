@@ -3,6 +3,10 @@ set -e
 
 ## Filter BAM files created by Bowtie2
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script is designed to work with arrayer.sh - it takes a single command
 ## line argument, which is an integer. It uses this integer to select a single
 ## .bam file from in_dir, then filters the .bam file and writes the output to

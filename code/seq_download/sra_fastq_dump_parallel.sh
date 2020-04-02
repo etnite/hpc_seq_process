@@ -2,6 +2,10 @@
 
 ## Dump SRA files to FASTQ
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script takes two inputs:
 ##   1) Two-column tab-delimited file, with SRR numbers in first column (e.g.
 ##      "SRR1211028", and sample name in second column. This file would typically

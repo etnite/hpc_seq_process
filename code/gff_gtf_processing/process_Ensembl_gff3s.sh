@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-## Clean up IWGSC .gff3 files
+## Clean up Ensembl .gff3 files
+##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
 ##
 ## This script will get .gff3 files cleaned up and (hopefully) in a valid format.
 ##

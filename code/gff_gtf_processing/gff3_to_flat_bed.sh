@@ -3,6 +3,10 @@ set -e
 
 ## Convert a .gff3 file to a flattened .bed file
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script will take a .gff3 file as input, sort it, isolate only lines that
 ## represent genes (i.e. get rid of subfeatures), and then will "flatten" it.
 ## The input .gff3 file can be gzipped or uncompressed.

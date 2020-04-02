@@ -3,6 +3,10 @@ set -e
 
 ## Combine single sample gVCF files
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script combines single-sample gVCF files contained in an input directory
 ## into one multi-sample gVCF using GATK's CombineGVCFs tool.
 ##

@@ -3,6 +3,10 @@
 #=
 Script for parsing the output of samtools depth. See the argument parser description
 below for more details.
+
+Brian Ward
+brian@brianpward.net
+https://github.com/etnite
 =#
 
 using ArgParse

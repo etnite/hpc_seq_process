@@ -2,6 +2,10 @@
 
 ## Single end alignment using Bowtie2
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script aligns the reads in a single fastq file.
 ## It takes a single string (usually a sample name) as its only positional
 ## argument. Then it searches for the corresponding fastq file using the pattern:
