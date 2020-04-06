@@ -2,6 +2,10 @@
 
 ## Convert BAM files back to fastqs
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## The purpose of this script is to take a BAM file, and convert it back into
 ## paired FASTQ files. Why would you want to do this? Mainly for testing
 ## purposes to compare different alignment techniques.

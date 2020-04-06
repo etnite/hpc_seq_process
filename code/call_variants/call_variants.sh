@@ -5,6 +5,10 @@ set -e
 
 ## Call variants in parallel
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script performs variant calling using BCFTools, running each chromosome
 ## in parallel.
 ##

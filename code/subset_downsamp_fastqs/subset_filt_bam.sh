@@ -2,6 +2,10 @@
 
 ## Subset/Filter BAM file
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script takes a single BAM file as input, filters it, and optionally 
 ## subsets it based on a
 ## regions file. The regions file is a text file listing regions of interest,

@@ -2,6 +2,10 @@
 
 ## Subset/Downsample FASTQ file
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script takes a single BAM file as input, and uses the read names in this
 ## file to subset a pair of mated fastq files (which were probably used to create
 ## the BAM file in the first place. This is primarily for testing/simulation

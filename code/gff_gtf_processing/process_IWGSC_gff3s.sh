@@ -3,6 +3,10 @@ set -e
 
 ## Clean up IWGSC .gff3 files
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script will get .gff3 files cleaned up and (hopefully) in a valid format.
 ##
 ## The input .gff3 file is supplied as a command-line argument. Input can be 

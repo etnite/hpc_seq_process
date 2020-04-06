@@ -2,6 +2,10 @@
 
 ## Get SRA samples associated with a BioProject
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script accepts two positional input parameters:
 ##   1) The accession number of an SRA bioproject
 ##   2) Output directory

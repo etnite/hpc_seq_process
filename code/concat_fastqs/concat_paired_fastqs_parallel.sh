@@ -2,6 +2,10 @@
 
 ## Concatenate paired fastq files
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## This script takes as input a single string (typically a genotype NAME). It
 ## will typically be used with arrayer.sh to run in independent, parallel
 ## fashion.

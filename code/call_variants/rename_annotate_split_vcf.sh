@@ -5,6 +5,10 @@ set -e
 
 ## Rename samples, annotate variants, split SNPs and indels
 ##
+## Brian Ward
+## brian@brianpward.net
+## https://github.com/etnite
+##
 ## INPUT FILES:
 ##
 ##   1. VCF file
