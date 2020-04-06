@@ -34,7 +34,7 @@
 #SBATCH --nodes=1 #Number of nodes
     ##SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
 #SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=36:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=08:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -65,11 +65,11 @@ max_dep=200
 min_qual=20
 min_mean=0
 min_median=5
-max_dist=250
+max_dist=500
 min_size=50
 
 ## Path to output .bed file
-out_bed="/project/genolabswheatphg/SRW_depth_test/julia_parallel/SRW_min_mdn5_maxdist250_minsize_50_dp.bed"
+out_bed="/project/genolabswheatphg/SRW_test_phg/find_ref_ranges/SRW_mdn5_dist500_size50_dp.bed"
 
 
 #### Executable ####
@@ -108,7 +108,7 @@ parallel -j $SLURM_NTASKS -a "$out_dir"/regions.txt \
 
 ## Combine region .bed files and delete temporary BAM list file
 cat "$out_dir"/region_depths/*.bed | sort -k 1,1 -k 2,2n > "$out_bed"
-rm "$out_dir"/temp_bam_list.txt
+#rm "$out_dir"/temp_bam_list.txt
 
 echo
 echo "End time:"

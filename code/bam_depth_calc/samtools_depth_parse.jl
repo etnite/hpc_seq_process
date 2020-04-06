@@ -85,7 +85,7 @@ function main()
             ## file, and then set open_pos to current position
             if abs(pos - last_pos) > dist
                 if last_pos >= 0
-                    println(chrom * "\t" * string(open_pos - 1) * "\t" * string(last_pos))
+                    println(stdout, chrom * "\t" * string(open_pos - 1) * "\t" * string(last_pos))
                 end ## End check for intial condition
                 open_pos = pos
             end ## End check pos - last_pos
