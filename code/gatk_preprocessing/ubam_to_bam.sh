@@ -14,9 +14,10 @@
 
 ## Input fastq directory, output directory for .bam files, and file
 ## of sample names, one listed per line
-fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
-out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-#samp_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
+in_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
+mark_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test/marked_adapters"
+#out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
+#bams_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
 
 
 #### Executable ####
@@ -30,14 +31,29 @@ echo "ubam_to_bam.sh"
 echo "Start time:"
 date
 
+array_ind=$1
+mkdir -p "${out_dir}"
+mkdir -p "$mark_dir"
+
+## Get name of input BAM file
+#in_bam=$(head -n "${array_ind}" "${bams_file}" | tail -n 1)
+in_bam="TRIBUTE_sub10K_L001.bam"
+mark_bam=$(echo "$in_bam" | sed 's/.bam/markadapters.bam/')
+met_file=$(echo "$in_bam" | sed 's/.bam/markadapters_metrics.txt/')
+
 ## Mark Illumina adapters in uBAM
+gatk MarkIlluminaAdapters \
+	-I "$in_dir"/"$in_bam" \
+	-O "$mark_dir"/"$mark_bam" \
+	-M "$mark_dir"/"$met_file" \
+	TMP_DIR="$mark_dir"
 
-java -Xmx8G -jar /path/picard.jar MarkIlluminaAdapters \
-	I=6483_snippet_revertsam.bam \
-	O=6483_snippet_markilluminaadapters.bam \
-	M=6483_snippet_markilluminaadapters_metrics.txt \ #naming required
-	TMP_DIR=/path/shlee #optional to process large files
+source deactivate
+echo
+echo "End time:"
+date
 
+exit 0;
 
 ## Pipe to run SamtoFastq, followed by alignment, followed by MergeBamAlignment
 
