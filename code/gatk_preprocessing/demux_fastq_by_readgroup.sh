@@ -90,8 +90,8 @@ demuxbyname.sh in1="$fq1" in2="$fq2" \
 out_fqs=( "$out_dir"/"$upsamp"*.fastq.gz )
 for i in "${out_fqs[@]}"; do
 
-    ## Get 10,000th line. Sometimes barcodes can contain Ns at beginning of file
-    id_line=$(zcat "$i" | head -n 10000 | tail -n 1)
+    ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
+    id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
     fcell=$(echo $id_line | cut -d ":" -f 3)
     lane=$(echo $id_line | cut -d ":" -f 4)
     bcode=$(echo $id_line | cut -d ":" -f 10)

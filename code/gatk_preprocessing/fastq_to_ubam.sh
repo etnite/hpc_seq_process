@@ -56,7 +56,8 @@ array_ind=$1
 mkdir -p "${out_dir}"
 
 ## Get the pattern to search for fastq files
-fq_pattern=$(head -n "${array_ind}" "${fq_pattern_file}" | tail -n 1)
+#fq_pattern=$(head -n "${array_ind}" "${fq_pattern_file}" | tail -n 1)
+fq_pattern="TRIBUTE_sub10K_L001"
 samp=$(echo "$fq_pattern" | sed 's/_.*//')
 upsamp="${samp^^}"
 
@@ -65,8 +66,8 @@ fq1=$(echo "${fastq_dir}"/"${fq_pattern}"*R1*fastq.gz)
 fq2=$(echo "${fastq_dir}"/"${fq_pattern}"*R2*fastq.gz)
 
 ## Get flowcell, lane, and barcode metadata from R1 fastq file
-## Get 10,000th line. Sometimes barcodes can contain Ns at beginning of file 
-id_line=$(zcat "$fq1" | head -n 10000 | tail -n 1)
+## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file 
+id_line=$(zcat "$fq1" | head -n 10001 | tail -n 1)
 fcell=$(echo $id_line | cut -d ":" -f 3)
 lane=$(echo $id_line | cut -d ":" -f 4)
 bcode=$(echo $id_line | cut -d ":" -f 10)
