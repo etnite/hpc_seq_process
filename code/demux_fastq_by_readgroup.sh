@@ -47,7 +47,7 @@
 ## of sample names, one listed per line
 fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
 out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-#samp_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
+#patterns_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
 out_fmt="fq"
 
 ## How often to sample read names from each fastq file
