@@ -48,7 +48,7 @@
 fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
 out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
 #patterns_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
-out_fmt="fq"
+out_fmt="bam"
 
 ## How often to sample read names from each fastq file
 ## For instance, setting to 10000 will sample every 10,000th read to
@@ -68,17 +68,19 @@ date
 
 
 ## Sanity check on output format
-if [[ "$out_fmt" != "fq" ]] || [[ "$out_fmt" != "bam" ]]; then
-	echo
-	echo "Please set output format (out_fmt) to either 'fq' or 'bam'"
-	exit 1;
+if [[ "$out_fmt" != "fq" ]] && [[ "$out_fmt" != "bam" ]]; then
+    echo
+    echo "Error - please set output format (out_fmt) to either 'fq' or 'bam'"
+    echo "It is currently set to: ${out_fmt}"
+    exit 1;
 fi
 
 mkdir -p "$out_dir"
 array_ind=$1
 
 ## Get search pattern string and sample name; convert sample name to uppercase
-patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+patt="TRIBUTE_ileaved_sub10K.fastq.gz"
+#patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
 samp=$(echo "$patt" | sed 's/_.*//')
 upsamp="${samp^^}"
 
@@ -101,18 +103,18 @@ zcat "$fq" | sed -n "1~${read_samp}p" | cut -d ":" -f 3,4 | sort -u > "${out_dir
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     demuxbyname.sh in="$fq" \
     	substringmode \
-    	out="${out_dir}/${upsamp}"_%.fastq.gz \
+    	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
     	names="${out_dir}/fcell_lane.txt"
 else
     demuxbyname.sh in1="$fq" in2="$fq2" \
     	substringmode \
-    	out="${out_dir}/${upsamp}"_%.fastq.gz \
+    	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
     	names="${out_dir}/fcell_lane.txt"
 fi
 
 
 ## Loop through new demuxed, interleaved fastq files
-out_fqs=( "${out_dir}/${upsamp}"*.fastq.gz )
+out_fqs=( "${out_dir}/${upsamp}"*interleaved.fastq.gz )
 for i in "${out_fqs[@]}"; do
 
 	if [[ "$out_fmt" == "fq" ]]; then
