@@ -1,4 +1,5 @@
 #!/bin/bash
+shopt -s nullglob
 
 ## Paired end alignment using Bowtie2
 ##
@@ -6,10 +7,15 @@
 ## brian@brianpward.net
 ## https://github.com/etnite
 ##
-## This script aligns a single pair of mated fastq files.
-## It takes a single string (usually a sample name) as its only positional
-## argument. Then it searches for corresponding fastq files using the pattern:
-## fastq_dir/samplename_R[1/2].fastq.gz
+## This script aligns a single pair of mated fastq files, or one interleaved fastq file.
+## It takes a single string as its only positional argument. Then it searches 
+## for corresponding fastq files using the pattern fastq_dir/<pattern>*R[1/2]*[fastq/fq].gz
+## for paired input, or fastq_dir/<pattern>*[fastq/fq].gz for interleaved.
+## If the search pattern ends in "fastq.gz" or "fq.gz", then we assume the input
+## is interleaved, since it's pointing to a single file.
+##
+## Everything up to the first underscore in the search string is used as the
+## sample name.
 ##
 ## The output consists of a single sorted BAM file, with PCR duplicates marked.
 ##
@@ -50,7 +56,7 @@
 #ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa" 
 
 fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
-samps_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_reform_samples.txt"
+patterns_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_reform_samples.txt"
 out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_composite_ref"
 ref="/project/genolabswheatphg/v1_refseq/compiled_seqs_noUn/T_aestivum_v1_w_translocs_noUn.fasta"
 
@@ -64,49 +70,74 @@ echo "Start bowtie2_align_parallel.sh"
 echo "Start time:"
 date
 
-mkdir -p "${out_dir}"
+mkdir -p "$out_dir"
 array_ind=$1
 
-## Get sample name
-samp=$(head -n "${array_ind}" "${samps_file}" | tail -n 1)
 
-## Set forward and reverse read fastq files
-fq1=$(echo "${fastq_dir}"/"${samp}"*R1.fastq.gz)
-fq2=$(echo "${fastq_dir}"/"${samp}"*R2.fastq.gz)
+## Get search pattern string and sample name; convert sample name to uppercase
+patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+samp=$(echo "$patt" | sed 's/_.*//')
+upsamp="${samp^^}"
+
+
+## If search pattern ends in fastq.gz or fq.gz, then we are assuming interleaved format
+if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
+    fq="${fastq_dir}/${patt}"
+else
+    fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz)
+    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz)
+fi
+
 
 ## For some reason, the barcode indexes in FASTQ files can contain some N
 ## values for the first few reads. I don't know the significance of this. 
 ## Let's just grab line 10,001:
 ## NOTE: In the case of concatenated fastq files, flowcells, lanes,
-## barcodes, etc. may all vary. Therefore these sections are disabled
-#one_line=$(zcat $fq1 | head -n 10001 | tail -n -1)
-
-## This sets the first four fields (instrument:run_id:flowcell:lane) of the 
-## first line of the fastq file as a variable named "id"
-#id=$(echo "$one_line" | cut -f 1-4 -d":" | sed 's/@//' | sed 's/:/_/g')
-
-## Now get the barcode from the 10th field of the line
-## NO
-#bar=$(echo "$one_line" | cut -f 10 -d":" | sed 's/+/-/')
+## barcodes, etc. may all vary within a file.
+id_line=$(zcat "$fq" | head -n 10001 | tail -n 1)
+fcell=$(echo "$id_line" | cut -d ":" -f 3)
+lane=$(echo "$id_line" | cut -d ":" -f 4)
+bcode=$(echo "$id_line" | cut -d ":" -f 10)
 
 
+## Run bowtie for either paired or interleaved formats
 ref="${ref%.*}"
-bowtie2 -x "${ref}" \
+if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
+    bowtie2 -x "${ref}" \
         --threads $SLURM_NTASKS \
-        --rg-id "${samp}" \
-        --rg SM:"${samp}" \
+        --rg-id "${fcell}_${lane}" \
+        --rg SM:"$upsamp" \
         --rg PL:ILLUMINA \
+        --rg PU:"${fcell}_${lane}.${bcode}" \
+        --rg LB:"${upsamp}_lib" \
         --sensitive-local \
         --phred33 \
-        -1 "${fq1}" \
-        -2 "${fq2}" |
-        samtools sort -n -T "${out_dir}"/"${samp}"sort1 -O SAM - |
+        --interleaved "$fq" |
+        samtools sort -n -T "${out_dir}/${upsamp}sort1" -O SAM - |
         samtools fixmate -m -O SAM - - |
-        samtools sort -T "${out_dir}"/"${samp}"sort2 -O SAM - |
-        samtools markdup - "${out_dir}"/"${samp}".bam
+        samtools sort -T "${out_dir}/${upsamp}sort2" -O SAM - |
+        samtools markdup - "${out_dir}/${upsamp}.bam"
+else
+    bowtie2 -x "${ref}" \
+        --threads $SLURM_NTASKS \
+        --rg-id "${fcell}_${lane}" \
+        --rg SM:"$upsamp" \
+        --rg PL:ILLUMINA \
+        --rg PU:"${fcell}_${lane}.${bcode}" \
+        --rg LB:"${upsamp}_lib" \
+        --sensitive-local \
+        --phred33 \
+        -1 "$fq" \
+        -2 "$fq2" |
+        samtools sort -n -T "${out_dir}/${upsamp}sort1" -O SAM - |
+        samtools fixmate -m -O SAM - - |
+        samtools sort -T "${out_dir}/${upsamp}sort2" -O SAM - |
+        samtools markdup - "${out_dir}/${upsamp}.bam"
+fi
+
 
 ## Index BAM file using .csi index format
-samtools index -c "${out_dir}"/"${samp}".bam
+samtools index -c "${out_dir}/${upsamp}.bam"
 
 echo
 echo "End time:"
