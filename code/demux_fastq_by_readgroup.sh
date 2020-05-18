@@ -47,7 +47,7 @@
 ## of sample names, one listed per line
 fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
 out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-#patterns_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
+patterns_file="/home/brian.ward/test_samplist.txt"
 out_fmt="bam"
 
 ## How often to sample read names from each fastq file
@@ -79,8 +79,8 @@ mkdir -p "$out_dir"
 array_ind=$1
 
 ## Get search pattern string and sample name; convert sample name to uppercase
-patt="TRIBUTE_ileaved_sub10K.fastq.gz"
-#patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+#patt="TRIBUTE_ileaved_sub10K.fastq.gz"
+patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
 samp=$(basename "$patt" | sed 's/_.*//')
 upsamp="${samp^^}"
 sub_dir=$(dirname "$patt")
