@@ -81,8 +81,13 @@ array_ind=$1
 ## Get search pattern string and sample name; convert sample name to uppercase
 patt="TRIBUTE_ileaved_sub10K.fastq.gz"
 #patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
-samp=$(echo "$patt" | sed 's/_.*//')
+samp=$(basename "$patt" | sed 's/_.*//')
 upsamp="${samp^^}"
+sub_dir=$(dirname "$patt")
+if [[ "$subdir" != "." ]]; then
+	mkdir -p "${out_dir}/${sub_dir}"
+	upsamp="${sub_dir}/${upsamp}"
+fi
 
 
 ## If search pattern ends in fastq.gz or fq.gz, then we are assuming interleaved format
@@ -96,7 +101,7 @@ fi
 
 ## Read every nth line of the first read fastq file
 ## Need if statement to check for SRR files
-zcat "$fq" | sed -n "1~${read_samp}p" | cut -d ":" -f 3,4 | sort -u > "${out_dir}/fcell_lane.txt"
+zcat "$fq" | sed -n "1~${read_samp}p" | cut -d ":" -f 3,4 | sort -u > "${out_dir}/${upsamp}_fcell_lane.txt"
 
 
 ## Demultiplex the fastq based on the unique flowcell lane combination
@@ -104,12 +109,12 @@ if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     demuxbyname.sh in="$fq" \
     	substringmode \
     	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
-    	names="${out_dir}/fcell_lane.txt"
+    	names="${out_dir}/${upsamp}_fcell_lane.txt"
 else
     demuxbyname.sh in1="$fq" in2="$fq2" \
     	substringmode \
     	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
-    	names="${out_dir}/fcell_lane.txt"
+    	names="${out_dir}/${upsamp}_fcell_lane.txt"
 fi
 
 
@@ -140,7 +145,7 @@ for i in "${out_fqs[@]}"; do
 	        -F1 "$i" \
 	        -O "$out_bam" \
 	        -RG "${fcell}_${lane}" \
-	        -SM "$upsamp" \
+	        -SM $(basename "$upsamp") \
 	        -PL ILLUMINA \
 	        -PU "${fcell}_${lane}.${bcode}" \
 	        -LB "${upsamp}_lib"
