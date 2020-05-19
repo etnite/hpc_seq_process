@@ -47,7 +47,7 @@
 ## of sample names, one listed per line
 fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
 out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-patterns_file="/home/brian.ward/test_samplist.txt"
+patterns_file="/home/brian.ward/test_samplist2.txt"
 out_fmt="bam"
 
 ## How often to sample read names from each fastq file
@@ -131,7 +131,7 @@ for i in "${out_fqs[@]}"; do
 
 	else
 
-		## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
+	    ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
 	    id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
 	    fcell=$(echo "$id_line" | cut -d ":" -f 3)
 	    lane=$(echo "$id_line" | cut -d ":" -f 4)
@@ -153,6 +153,8 @@ for i in "${out_fqs[@]}"; do
 	    rm "$i"
 	fi
 done
+
+rm "${out_dir}/${upsamp}_fcell_lane.txt"
 
 source deactivate
 echo
