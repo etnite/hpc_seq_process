@@ -137,10 +137,15 @@ for i in "${out_fqs[@]}"; do
 	else
 
 	    ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
-	    id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
-	    fcell=$(echo "$id_line" | cut -d ":" -f 3)
-	    lane=$(echo "$id_line" | cut -d ":" -f 4)
-	    bcode=$(echo "$id_line" | cut -d ":" -f 10)
+        ## Test for whether dealing with SRA files
+        id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
+        fcell=$(echo "$id_line" | cut -d ":" -f 3)
+        lane=$(echo "$id_line" | cut -d ":" -f 4)
+        if [[ "$id_line" == @SRR* ]]; then
+            bcode=$(echo "$id_line" | cut -d "." -f 1)
+        else
+            bcode=$(echo "$id_line" | cut -d ":" -f 10)
+        fi
 
 	    ## Create output .bam file name
 	    out_bam=$(echo "$i" | sed 's/:/_/g' |  sed 's/.fastq.gz/.bam/')
