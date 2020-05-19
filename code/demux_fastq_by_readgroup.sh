@@ -1,4 +1,5 @@
 #!/bin/bash
+shopt -s nullglob
 
 ## Demultiplex paired fastq files by read group
 ##
@@ -34,6 +35,9 @@
 ## If the search pattern ends in "fastq.gz" or "fq.gz", then we assume the input
 ## is interleaved, since it's pointing to a single file.
 ##
+## A search pattern can contain a subdirectory prefix. In this case, the
+## subdirectory will be created in the output directory.
+##
 ## BBDuk's demuxbyname.sh is used to split apart the fastq files and write out
 ## a single interleaved fastq for each read group. Finally, Picard FastqToSam
 ## converts each fastq to a uBAM, adding read group metadata.
@@ -43,8 +47,9 @@
 
 #### User-defined variables ####
 
-## Input fastq directory, output directory for .bam files, and file
-## of sample names, one listed per line
+## Input fastq directory, output disrectory for .fastq or .bam files, file
+## of file name patterns, one listed per line, and desired output format, either
+## "fq" or "bam"
 fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
 out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
 patterns_file="/home/brian.ward/test_samplist2.txt"
@@ -94,8 +99,8 @@ fi
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     fq="${fastq_dir}/${patt}"
 else
-    fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz)
-    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz)
+    fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz "${fastq_dir}/${patt}"*R1*fq.gz)
+    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz "${fastq_dir}/${patt}"*R1*fq.gz)
 fi
 
 
