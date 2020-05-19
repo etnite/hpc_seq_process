@@ -25,9 +25,9 @@ shopt -s nullglob
 
 ## Input fastq directory, output directory for, and file
 ## of filename patterns, one listed per line
-in_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
-out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-patterns_file="/home/brian.ward/test_samplist2.txt"
+in_dir="/project/genolabswheatphg/raw_data/wheatCAP_parents"
+out_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/wheatCAP_parents"
+patterns_file="/home/brian.ward/search_pattern_files/wheatCAP_parent_patterns.txt"
 
 
 #### Executable ####
@@ -52,7 +52,7 @@ fi
 
 ## Get the two paired fastq files
 fq=$(echo "${in_dir}/${patt}"*R1*fastq.gz "${in_dir}/${patt}"*R1*fq.gz)
-fq2=$(echo "${in_dir}/${patt}"*R2*fastq.gz "${in_dir}/${patt}"*R1*fq.gz)
+fq2=$(echo "${in_dir}/${patt}"*R2*fastq.gz "${in_dir}/${patt}"*R2*fq.gz)
 
 ## Interleave the files
 reformat.sh in1="$fq" in2="$fq2" out="${out_dir}/${patt}_interleaved.fastq.gz"
