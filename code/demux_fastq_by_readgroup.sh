@@ -50,20 +50,24 @@ shopt -s nullglob
 ## Input fastq directory, output disrectory for .fastq or .bam files, file
 ## of file name patterns, one listed per line, and desired output format, either
 ## "fq" or "bam"
-fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap"
-out_dir="/project/genolabswheatphg/merged_fastqs/SRW_excap/fq_demux_test"
-patterns_file="/home/brian.ward/test_samplist2.txt"
-out_fmt="bam"
+fastq_dir="/project/genolabswheatphg/raw_data/v1_hapmap"
+out_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/v1_hapmap"
+patterns_file="/home/brian.ward/search_pattern_files/v1_hapmap_patterns.txt"
+out_fmt="fq"
+
+## Convert sample name to uppercase? (TRUE/FALSE)
+name2upper="TRUE"
 
 ## How often to sample read names from each fastq file
 ## For instance, setting to 10000 will sample every 10,000th read to
 ## try and find unique flowcell/lane combinations
-read_samp=250
+read_samp=20000
 
 
 #### Executable ####
 
 module load bbtools
+module load pigz
 source activate gatk4
 
 echo
@@ -72,7 +76,7 @@ echo "Start time:"
 date
 
 
-## Sanity check on output format
+## Sanity checks on user-supplied inputs
 if [[ "$out_fmt" != "fq" ]] && [[ "$out_fmt" != "bam" ]]; then
     echo
     echo "Error - please set output format (out_fmt) to either 'fq' or 'bam'"
@@ -80,14 +84,27 @@ if [[ "$out_fmt" != "fq" ]] && [[ "$out_fmt" != "bam" ]]; then
     exit 1;
 fi
 
+name2upper="${name2upper^^}"
+if [[ "$name2upper" != "TRUE"  ]] && [[ "$name2upper" != "FALSE" ]]; then
+    echo
+    echo "Error - please set name2upper to either 'TRUE' or 'FALSE'"
+    echo "It is currently set to: ${name2upper}"
+    exit 1;
+fi
+
 mkdir -p "$out_dir"
 array_ind=$1
 
 ## Get search pattern string and sample name; convert sample name to uppercase
-#patt="TRIBUTE_ileaved_sub10K.fastq.gz"
 patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+
 samp=$(basename "$patt" | sed 's/_.*//')
-upsamp="${samp^^}"
+if [[ "$name2upper" == "TRUE" ]]; then 
+    upsamp="${samp^^}"
+else
+    upsamp="$samp"
+fi
+
 sub_dir=$(dirname "$patt")
 if [[ "$subdir" != "." ]]; then
 	mkdir -p "${out_dir}/${sub_dir}"
@@ -100,7 +117,7 @@ if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     fq="${fastq_dir}/${patt}"
 else
     fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz "${fastq_dir}/${patt}"*R1*fq.gz)
-    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz "${fastq_dir}/${patt}"*R1*fq.gz)
+    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz "${fastq_dir}/${patt}"*R2*fq.gz)
 fi
 
 
@@ -111,12 +128,12 @@ zcat "$fq" | sed -n "1~${read_samp}p" | cut -d ":" -f 3,4 | sort -u > "${out_dir
 
 ## Demultiplex the fastq based on the unique flowcell lane combination
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
-    demuxbyname.sh in="$fq" \
+    demuxbyname.sh -Xmx2800m in="$fq" \
     	substringmode \
     	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
     	names="${out_dir}/${upsamp}_fcell_lane.txt"
 else
-    demuxbyname.sh in1="$fq" in2="$fq2" \
+    demuxbyname.sh -Xmx2800m in1="$fq" in2="$fq2" \
     	substringmode \
     	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
     	names="${out_dir}/${upsamp}_fcell_lane.txt"
@@ -136,7 +153,7 @@ for i in "${out_fqs[@]}"; do
 
 	else
 
-	    ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
+	## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
         ## Test for whether dealing with SRA files
         id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
         fcell=$(echo "$id_line" | cut -d ":" -f 3)

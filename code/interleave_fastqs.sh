@@ -25,9 +25,9 @@ shopt -s nullglob
 
 ## Input fastq directory, output directory for, and file
 ## of filename patterns, one listed per line
-in_dir="/project/genolabswheatphg/raw_data/wheatCAP_parents"
-out_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/wheatCAP_parents"
-patterns_file="/home/brian.ward/search_pattern_files/wheatCAP_parent_patterns.txt"
+in_dir="/project/genolabswheatphg/raw_data/v1_hapmap/SRR1211111"
+out_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/malformed_readnames"
+patterns_file="/home/brian.ward/search_pattern_files/AVALON_pattern.txt"
 
 
 #### Executable ####
@@ -55,7 +55,7 @@ fq=$(echo "${in_dir}/${patt}"*R1*fastq.gz "${in_dir}/${patt}"*R1*fq.gz)
 fq2=$(echo "${in_dir}/${patt}"*R2*fastq.gz "${in_dir}/${patt}"*R2*fq.gz)
 
 ## Interleave the files
-reformat.sh in1="$fq" in2="$fq2" out="${out_dir}/${patt}_interleaved.fastq.gz"
+reformat.sh -Xmx2800m in1="$fq" in2="$fq2" out="${out_dir}/${patt}_interleaved.fastq.gz"
 
 echo
 echo "End time:"
