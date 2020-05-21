@@ -107,8 +107,8 @@ fi
 
 sub_dir=$(dirname "$patt")
 if [[ "$subdir" != "." ]]; then
-	mkdir -p "${out_dir}/${sub_dir}"
-	upsamp="${sub_dir}/${upsamp}"
+    mkdir -p "${out_dir}/${sub_dir}"
+    upsamp="${sub_dir}/${upsamp}"
 fi
 
 
@@ -129,14 +129,14 @@ zcat "$fq" | sed -n "1~${read_samp}p" | cut -d ":" -f 3,4 | sort -u > "${out_dir
 ## Demultiplex the fastq based on the unique flowcell lane combination
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     demuxbyname.sh -Xmx2800m in="$fq" \
-    	substringmode \
-    	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
-    	names="${out_dir}/${upsamp}_fcell_lane.txt"
+        substringmode \
+        out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
+        names="${out_dir}/${upsamp}_fcell_lane.txt"
 else
     demuxbyname.sh -Xmx2800m in1="$fq" in2="$fq2" \
-    	substringmode \
-    	out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
-    	names="${out_dir}/${upsamp}_fcell_lane.txt"
+        substringmode \
+        out="${out_dir}/${upsamp}"_%_interleaved.fastq.gz \
+        names="${out_dir}/${upsamp}_fcell_lane.txt"
 fi
 
 
@@ -144,16 +144,16 @@ fi
 out_fqs=( "${out_dir}/${upsamp}"*interleaved.fastq.gz )
 for i in "${out_fqs[@]}"; do
 
-	if [[ "$out_fmt" == "fq" ]]; then
+    if [[ "$out_fmt" == "fq" ]]; then
 
-		## The interleaved fastq has a colon between flowcell and lane
-		## Replace with underscore
-		new_name=$(echo "$i" | sed 's/:/_/g')
-		mv "$i" "$new_name"
+        ## The interleaved fastq has a colon between flowcell and lane
+        ## Replace with underscore
+        new_name=$(echo "$i" | sed 's/:/_/g')
+        mv "$i" "$new_name"
 
-	else
+    else
 
-	## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
+    ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file
         ## Test for whether dealing with SRA files
         id_line=$(zcat "$i" | head -n 10001 | tail -n 1)
         fcell=$(echo "$id_line" | cut -d ":" -f 3)
@@ -164,21 +164,21 @@ for i in "${out_fqs[@]}"; do
             bcode=$(echo "$id_line" | cut -d ":" -f 10)
         fi
 
-	    ## Create output .bam file name
-	    out_bam=$(echo "$i" | sed 's/:/_/g' |  sed 's/.fastq.gz/.bam/')
+        ## Create output .bam file name
+        out_bam=$(echo "$i" | sed 's/:/_/g' |  sed 's/.fastq.gz/.bam/')
 
-	    ## Convert fastq to bam, adding metadata
-	    gatk FastqToSam \
-	        -F1 "$i" \
-	        -O "$out_bam" \
-	        -RG "${fcell}_${lane}" \
-	        -SM $(basename "$upsamp") \
-	        -PL ILLUMINA \
-	        -PU "${fcell}_${lane}.${bcode}" \
-	        -LB "${upsamp}_lib"
+        ## Convert fastq to bam, adding metadata
+        gatk FastqToSam \
+            -F1 "$i" \
+            -O "$out_bam" \
+            -RG "${fcell}_${lane}" \
+            -SM $(basename "$upsamp") \
+            -PL ILLUMINA \
+            -PU "${fcell}_${lane}.${bcode}" \
+            -LB "${upsamp}_lib"
 
-	    rm "$i"
-	fi
+        rm "$i"
+    fi
 done
 
 rm "${out_dir}/${upsamp}_fcell_lane.txt"
