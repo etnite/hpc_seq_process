@@ -40,25 +40,14 @@ shopt -s nullglob
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/SRW_reform_samples.txt"
-#out_dir="/project/genolabswheatphg/alignments/SRW_wholechrom_bw2_bams"
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/KS_HRW_excap"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/ZENDA.txt"
-#out_dir="/project/genolabswheatphg/alignments/KS_HRW_wholechrom_bw2_bams"
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/wheatCAP_parents"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/wheatCAP_samples_reform.txt"  
-#out_dir="/project/genolabswheatphg/alignments/wheatCAP_wholechrom_bw2_bams" 
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa" 
-
 fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
 patterns_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_reform_samples.txt"
 out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_composite_ref"
 ref="/project/genolabswheatphg/v1_refseq/compiled_seqs_noUn/T_aestivum_v1_w_translocs_noUn.fasta"
+
+## Convert sample name to uppercase? (TRUE/FALSE)
+name2upper="TRUE"
+
 
 #### Executable  ####
 
@@ -70,14 +59,33 @@ echo "Start bowtie2_align_parallel.sh"
 echo "Start time:"
 date
 
+## Input sanity check
+name2upper="${name2upper^^}"
+if [[ "$name2upper" != "TRUE"  ]] && [[ "$name2upper" != "FALSE" ]]; then
+    echo
+    echo "Error - please set name2upper to either 'TRUE' or 'FALSE'"
+    echo "It is currently set to: ${name2upper}"
+    exit 1;
+fi
+
 mkdir -p "$out_dir"
 array_ind=$1
 
-
 ## Get search pattern string and sample name; convert sample name to uppercase
 patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
-samp=$(echo "$patt" | sed 's/_.*//')
-upsamp="${samp^^}"
+
+samp=$(basename "$patt" | sed 's/_.*//')
+if [[ "$name2upper" == "TRUE" ]]; then 
+    upsamp="${samp^^}"
+else
+    upsamp="$samp"
+fi
+
+sub_dir=$(dirname "$patt")
+if [[ "$subdir" != "." ]]; then
+    mkdir -p "${out_dir}/${sub_dir}"
+    upsamp="${sub_dir}/${upsamp}"
+fi
 
 
 ## If search pattern ends in fastq.gz or fq.gz, then we are assuming interleaved format
