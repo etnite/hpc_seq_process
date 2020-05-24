@@ -27,10 +27,10 @@ shopt -s nullglob
 
 #### User-defined constants ####
 
-in_dir="/project/genolabswheatphg/merged_fastqs/v1_hapmap"
-adapt_fasta="../../bbduk_38.84_Illumina_adapters.fa"
-patterns_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
-out_dir="/project/genolabswheatphg/filt_fastqs/v1_hapmap"
+in_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs"
+adapt_fasta="/home/brian.ward/repos/hpc_seq_process/bbduk_38.84_Illumina_adapters.fa"
+patterns_file="/home/brian.ward/search_pattern_files/updated_raw_fastq_patterns.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
 
 
 #### Executable  ####
