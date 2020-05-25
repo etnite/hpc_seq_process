@@ -25,9 +25,9 @@ shopt -s nullglob
 
 ## Input fastq directory, output directory for, and file
 ## of filename patterns, one listed per line
-in_dir="/project/genolabswheatphg/raw_data/v1_hapmap/SRR1211111"
-out_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/malformed_readnames"
-patterns_file="/home/brian.ward/search_pattern_files/AVALON_pattern.txt"
+in_dir="/project/genolabswheatphg/raw_data/UCDavis_wheatcap_2017"
+out_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs/UCDavis_wheatcap"
+patterns_file="/home/brian.ward/search_pattern_files/UCDavis_wheatcap_patterns.txt"
 
 
 #### Executable ####

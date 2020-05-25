@@ -31,8 +31,8 @@ shopt -s nullglob
 ##      slow...
 ##   4) Working directory inherited from parallelizing script - it is easiest
 ##      to define absolute paths
-##   5) Running one wheat exome capture alignment (26,343,777 reads) on Ceres 
-##      with 10 cores took 3 hours, 20 minutes
+##   5) Aligning 1 million paired reads (i.e. 2 million total reads) on Ceres
+##      using one hyprethreaded core took 30 minutes.
 ################################################################################
 
 
@@ -40,10 +40,10 @@ shopt -s nullglob
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
-patterns_file="/home/brian.ward/repos/hpc_seq_process/sample_lists/SRW_reform_samples.txt"
-out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_composite_ref"
-ref="/project/genolabswheatphg/v1_refseq/compiled_seqs_noUn/T_aestivum_v1_w_translocs_noUn.fasta"
+fastq_dir="/project/guedira_seq_map/brian/US_excap/testing"
+patterns_file="/home/brian.ward/search_pattern_files/test_align_pattern.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/testing"
+ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
 ## Convert sample name to uppercase? (TRUE/FALSE)
 name2upper="TRUE"

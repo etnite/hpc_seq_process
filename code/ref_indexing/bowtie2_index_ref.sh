@@ -23,7 +23,7 @@
 
 ## Options with two comment chars are deactivated
 
-#SBATCH --job-name="bowtie2-index" #name of the job submitted
+#SBATCH --job-name="bt2-index" #name of the job submitted
 #SBATCH --partition=mem #name of the queue you are submitting job to
 #SBATCH --nodes=1 #Number of nodes
     ##SBATCH --ntasks=10  #Number of overall tasks - overrides tasks per node
@@ -39,7 +39,7 @@ module load bowtie2
 
 #### User-defined constants ####
 
-ref_file="/project/genolabswheatphg/v1_refseq/compiled_seqs_noUn/T_aestivum_v1_w_translocs_noUn.fasta"
+ref_file="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 nthreads=$SLURM_NTASKS
 
 
