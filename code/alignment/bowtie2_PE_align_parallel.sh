@@ -31,8 +31,11 @@ shopt -s nullglob
 ##      slow...
 ##   4) Working directory inherited from parallelizing script - it is easiest
 ##      to define absolute paths
-##   5) Aligning 1 million paired reads (i.e. 2 million total reads) on Ceres
-##      using one hyprethreaded core took 30 minutes.
+##   5) If the fastq file is from the sequence read archive (SRA), then its SRR
+##      number is used as the barcode. Otherwise the barcode stored in the Illumina
+##      read IDs is used.
+##   6) Aligning 1 million paired reads (i.e. 2 million total reads) on Ceres
+##      using one hyprethreaded core (2 threads) took 30 minutes.
 ################################################################################
 
 
@@ -105,7 +108,11 @@ fi
 id_line=$(zcat "$fq" | head -n 10001 | tail -n 1)
 fcell=$(echo "$id_line" | cut -d ":" -f 3)
 lane=$(echo "$id_line" | cut -d ":" -f 4)
-bcode=$(echo "$id_line" | cut -d ":" -f 10)
+if [[ "$id_line" = @SRR* ]]; then
+    bcode=$(echo "$id_line" | cut -d "." -f 1 | sed 's/^@//')
+else
+    bcode=$(echo "$id_line" | cut -d ":" -f 10)
+fi
 
 
 ## Run bowtie for either paired or interleaved formats
@@ -114,11 +121,11 @@ rg_sm=$(basename "$upsamp")
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     bowtie2 -x "${ref}" \
         --threads $SLURM_NTASKS \
-        --rg-id "${fcell}_${lane}" \
+        --rg-id "${rg_sm}.${fcell}.${lane}.${bcode}" \
         --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
-        --rg PU:"${fcell}_${lane}.${bcode}" \
-        --rg LB:"${rg_sm}_lib" \
+        --rg PU:"${fcell}.${lane}" \
+        --rg LB:"${rg_sm}_lib01" \
         --sensitive-local \
         --phred33 \
         --interleaved "$fq" |
@@ -129,11 +136,11 @@ if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
 else
     bowtie2 -x "${ref}" \
         --threads $SLURM_NTASKS \
-        --rg-id "${fcell}_${lane}" \
+        --rg-id "${rg_sm}.${fcell}.${lane}.${bcode}" \
         --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
-        --rg PU:"${fcell}_${lane}.${bcode}" \
-        --rg LB:"${rg_sm}_lib" \
+        --rg PU:"${fcell}.${lane}" \
+        --rg LB:"${rg_sm}_lib01" \
         --sensitive-local \
         --phred33 \
         -1 "$fq" \
