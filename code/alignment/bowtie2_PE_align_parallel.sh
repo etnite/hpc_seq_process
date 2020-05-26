@@ -125,7 +125,7 @@ if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
         --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}.${lane}" \
-        --rg LB:"${rg_sm}_lib01" \
+        --rg LB:"${rg_sm}.lib01" \
         --sensitive-local \
         --phred33 \
         --interleaved "$fq" |
@@ -140,7 +140,7 @@ else
         --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}.${lane}" \
-        --rg LB:"${rg_sm}_lib01" \
+        --rg LB:"${rg_sm}.lib01" \
         --sensitive-local \
         --phred33 \
         -1 "$fq" \
