@@ -67,7 +67,7 @@ if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     ## maq=20 1%
     bbduk.sh -Xmx2800m in="${fq}" \
         out="${out_dir}/${patt}" \
-        ref="$adapt_fasta" ktrim=r k=23 mink=11 hdist=1 ftm=5 maq=13 minlen=75 tpe tbo
+        ref="$adapt_fasta" ktrim=r k=23 mink=11 hdist=1 ftm=5 maq=13 minlen=65 tpe tbo
 
 else
     fq=$(echo "${in_dir}"/"${patt}"*R1*fastq.gz "${in_dir}"/"${patt}"*R1*fq.gz)
@@ -76,7 +76,7 @@ else
     ## Run BBDuk
     bbduk.sh -Xmx2800m in1="$fq" in2="$fq2" \
         out1="${out_dir}/${patt}_R1.fastq.gz" out2="${out_dir}/${patt}_R2.fastq.gz" \
-        ref="$adapt_fasta" ktrim=r k=23 mink=11 hdist=1 ftm=5 maq=13 minlen=75 tpe tbo
+        ref="$adapt_fasta" ktrim=r k=23 mink=11 hdist=1 ftm=5 maq=13 minlen=65 tpe tbo
 fi
 
 echo

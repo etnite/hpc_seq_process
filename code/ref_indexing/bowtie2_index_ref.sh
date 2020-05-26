@@ -39,7 +39,7 @@ module load bowtie2
 
 #### User-defined constants ####
 
-ref_file="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+ref_file="/project/genolabswheatphg/v2_refseq/iwgsc_refseqv2.0_all_chromosomes.fa"
 nthreads=$SLURM_NTASKS
 
 

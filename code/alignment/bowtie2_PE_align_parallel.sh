@@ -40,9 +40,9 @@ shopt -s nullglob
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/project/guedira_seq_map/brian/US_excap/testing"
-patterns_file="/home/brian.ward/search_pattern_files/test_align_pattern.txt"
-out_dir="/project/guedira_seq_map/brian/US_excap/testing"
+fastq_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
+patterns_file="/home/brian.ward/search_pattern_files/NOT_v1_hapmap_filt_fqs.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
 ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
 ## Convert sample name to uppercase? (TRUE/FALSE)
@@ -110,14 +110,15 @@ bcode=$(echo "$id_line" | cut -d ":" -f 10)
 
 ## Run bowtie for either paired or interleaved formats
 ref="${ref%.*}"
+rg_sm=$(basename "$upsamp")
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     bowtie2 -x "${ref}" \
         --threads $SLURM_NTASKS \
         --rg-id "${fcell}_${lane}" \
-        --rg SM:"$upsamp" \
+        --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}_${lane}.${bcode}" \
-        --rg LB:"${upsamp}_lib" \
+        --rg LB:"${rg_sm}_lib" \
         --sensitive-local \
         --phred33 \
         --interleaved "$fq" |
@@ -129,10 +130,10 @@ else
     bowtie2 -x "${ref}" \
         --threads $SLURM_NTASKS \
         --rg-id "${fcell}_${lane}" \
-        --rg SM:"$upsamp" \
+        --rg SM:"$rg_sm" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}_${lane}.${bcode}" \
-        --rg LB:"${upsamp}_lib" \
+        --rg LB:"${rg_sm}_lib" \
         --sensitive-local \
         --phred33 \
         -1 "$fq" \
