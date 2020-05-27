@@ -89,15 +89,15 @@ if [[ "$subdir" != "." ]]; then mkdir -p "${out_dir}/${sub_dir}"; fi
 ## Generate output prefix. May need to remove up to two extensions, in case
 ## the search pattern ends with, e.g. ".fastq.gz"
 out_pref="${out_dir}/${patt%.*}"
-out_pref="${out_pref%.*}"
+out_pref=$(echo "${out_pref%.*}" | sed 's/_interleaved//')
 
 
 ## If search pattern ends in fastq.gz or fq.gz, then we are assuming interleaved format
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
     fq="${fastq_dir}/${patt}"
 else
-    fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz)
-    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz)
+    fq=$(echo "${fastq_dir}/${patt}"*R1*fastq.gz "${fastq_dir}/${patt}"*R1*fq.gz)
+    fq2=$(echo "${fastq_dir}/${patt}"*R2*fastq.gz "${fastq_dir}/${patt}"*R2*fq.gz)
 fi
 
 
