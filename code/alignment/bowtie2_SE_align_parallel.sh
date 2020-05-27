@@ -7,11 +7,14 @@
 ## https://github.com/etnite
 ##
 ## This script aligns the reads in a single fastq file.
-## It takes a single string (usually a sample name) as its only positional
-## argument. Then it searches for the corresponding fastq file using the pattern:
-## fastq_dir/samplename.fastq.gz
+## It takes a single string (a fastq file name) as its only positional argument. 
+## Then it searches for the corresponding fastq file using the pattern:
+## <fastq_dir>/<pattern>
 ##
-## The output consists of a single sorted BAM file, with PCR duplicates marked.
+## Everything up to the first underscore in the search string is used as the
+## sample name.
+##
+## The output consists of a single sorted BAM file.
 ##
 ## This script is intended to be used with arrayer.sh, to enable independent
 ## parallel runs on multiple samples simultaneously.
@@ -21,10 +24,14 @@
 ##   1) bowtie2 is run using the --sensitive-local option. This can be changed
 ##      manually in the call to bowtie2 below
 ##   2) The script will produce a .csi index of the output BAM file
-##   3) This script requires two sorting steps in samtools, so can be a bit
+##   3) This script requires a sorting step in samtools, so can be a bit
 ##      slow...
 ##   4) Working directory inherited from parallelizing script - it is easiest
 ##      to define absolute paths
+##   5) If the fastq file is from the sequence read archive (SRA), then its SRR
+##      number is used as the barcode. Otherwise the barcode stored in the Illumina
+##      read IDs is used.
+##   6) Script assumes various read groups for a sample came from a single library
 ################################################################################
 
 
@@ -32,30 +39,13 @@
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/SRW_excap"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/SRW_reform_samples.txt"
-#out_dir="/project/genolabswheatphg/alignments/SRW_wholechrom_bw2_bams"
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/KS_HRW_excap"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/ZENDA.txt"
-#out_dir="/project/genolabswheatphg/alignments/KS_HRW_wholechrom_bw2_bams"
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-
-#fastq_dir="/project/genolabswheatphg/filt_fastqs/wheatCAP_parents"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/wheatCAP_samples_reform.txt"  
-#out_dir="/project/genolabswheatphg/alignments/wheatCAP_wholechrom_bw2_bams" 
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa" 
-
-#fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_GBS"
-#samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/SRW_GBS_samps.txt"
-#out_dir="/project/genolabswheatphg/alignments/SRW_GBS_wholechrom_bw2_bams"
-#ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-
-fastq_dir="/project/genolabswheatphg/merged_fastqs/SRW_GBS"
-samps_file="/home/brian.ward/repos/wheat_phg/sample_lists/SS-MPV57.txt"
-out_dir="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_GBS_wholechrom_bw2_bams"
+fastq_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
+patterns_file="/home/brian.ward/search_pattern_files/NOT_v1_hapmap_filt_fqs.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
 ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+
+## Convert sample name to uppercase? (TRUE/FALSE)
+name2upper="TRUE"
 
 
 #### Executable  ####
@@ -64,48 +54,73 @@ module load bowtie2
 module load samtools
 
 echo
-echo "Start bowtie2_align_parallel.sh"
+echo "Start bowtie2_SE_align_parallel.sh"
 echo "Start time:"
 date
 
-mkdir -p "${out_dir}"
+## Input sanity check
+name2upper="${name2upper^^}"
+if [[ "$name2upper" != "TRUE"  ]] && [[ "$name2upper" != "FALSE" ]]; then
+    echo
+    echo "Error - please set name2upper to either 'TRUE' or 'FALSE'"
+    echo "It is currently set to: ${name2upper}"
+    exit 1;
+fi
+
+mkdir -p "$out_dir"
 array_ind=$1
 
-## Get sample name
-samp=$(head -n "${array_ind}" "${samps_file}" | tail -n 1)
+## Get search pattern string
+patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
 
-## Set alias for fastq file
-fq=$(echo "${fastq_dir}"/"${samp}".fastq.gz)
+## Get sample name; convert sample name to uppercase if specified
+samp=$(basename "$patt" | sed 's/_.*//')
+if [[ "$name2upper" == "TRUE" ]]; then samp="${samp^^}"; fi
 
+## Create output subdirectory from search pattern, if one is present
+sub_dir=$(dirname "$patt")
+if [[ "$subdir" != "." ]]; then mkdir -p "${out_dir}/${sub_dir}"; fi
+
+## Generate output prefix. May need to remove up to two extensions, in case
+## the search pattern ends with, e.g. ".fastq.gz"
+out_pref="${out_dir}/${patt%.*}"
+out_pref="${out_pref%.*}"
+
+## Set the full path to the fastq file
+fq="${fastq_dir}/${patt}"
+
+
+## Get RG tag info from fastq read IDs
 ## For some reason, the barcode indexes in FASTQ files can contain some N
 ## values for the first few reads. I don't know the significance of this. 
-## Let's just grab line 10,001:
-## NOTE: In the case of concatenated fastq files, flowcells, lanes,
-## barcodes, etc. may all vary. Therefore these sections are disabled
-#one_line=$(zcat $fq1 | head -n 10001 | tail -n -1)
-
-## This sets the first four fields (instrument:run_id:flowcell:lane) of the 
-## first line of the fastq file as a variable named "id"
-#id=$(echo "$one_line" | cut -f 1-4 -d":" | sed 's/@//' | sed 's/:/_/g')
-
-## Now get the barcode from the 10th field of the line
-## NO
-#bar=$(echo "$one_line" | cut -f 10 -d":" | sed 's/+/-/')
+## Let's just grab line 50,001:
+## NOTE: Concatenated fastqs will contain multiple read groups
+id_line=$(zcat "$fq" | head -n 50001 | tail -n 1)
+fcell=$(echo "$id_line" | cut -d ":" -f 3)
+lane=$(echo "$id_line" | cut -d ":" -f 4)
+if [[ "$id_line" == @SRR* ]]; then
+    bcode=$(echo "$id_line" | cut -d "." -f 1 | sed 's/^@//')
+else
+    bcode=$(echo "$id_line" | cut -d ":" -f 10)
+fi
 
 
+## Run bowtie2
 ref="${ref%.*}"
-bowtie2 -x "${ref}" \
+bowtie2 -x "$ref" \
         --threads $SLURM_NTASKS \
-        --rg-id "${samp}" \
-        --rg SM:"${samp}" \
+        --rg-id "${samp}.${fcell}.${lane}.${bcode}" \
+        --rg SM:"$samp" \
         --rg PL:ILLUMINA \
+        --rg PU:"${fcell}.${lane}" \
+        --rg LB:"${samp}.lib01" \
         --sensitive-local \
         --phred33 \
-        -U "${fq}" |
-        samtools sort -T "${out_dir}"/"${samp}"sort1 -O BAM -o "${out_dir}"/"${samp}".bam
+        -U "$fq" |
+        samtools sort -T "${out_pref}_sort1" -O BAM -o "${out_pref}.bam"
 
 ## Index BAM file using .csi index format
-samtools index -c "${out_dir}"/"${samp}".bam
+samtools index -c "${out_pref}.bam"
 
 echo
 echo "End time:"

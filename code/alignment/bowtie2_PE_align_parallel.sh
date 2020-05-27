@@ -36,6 +36,7 @@ shopt -s nullglob
 ##      read IDs is used.
 ##   6) Aligning 1 million paired reads (i.e. 2 million total reads) on Ceres
 ##      using one hyprethreaded core (2 threads) took 30 minutes.
+##   7) Script assumes various read groups for a sample came from a single library
 ################################################################################
 
 
@@ -58,7 +59,7 @@ module load bowtie2
 module load samtools
 
 echo
-echo "Start bowtie2_align_parallel.sh"
+echo "Start bowtie2_PE_align_parallel.sh"
 echo "Start time:"
 date
 
@@ -74,21 +75,21 @@ fi
 mkdir -p "$out_dir"
 array_ind=$1
 
-## Get search pattern string and sample name; convert sample name to uppercase
+## Get search pattern string
 patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
 
+## Get sample name; convert sample name to uppercase if specified
 samp=$(basename "$patt" | sed 's/_.*//')
-if [[ "$name2upper" == "TRUE" ]]; then 
-    upsamp="${samp^^}"
-else
-    upsamp="$samp"
-fi
+if [[ "$name2upper" == "TRUE" ]]; then samp="${samp^^}"; fi
 
+## Create output subdirectory from search pattern, if one is present
 sub_dir=$(dirname "$patt")
-if [[ "$subdir" != "." ]]; then
-    mkdir -p "${out_dir}/${sub_dir}"
-    upsamp="${sub_dir}/${upsamp}"
-fi
+if [[ "$subdir" != "." ]]; then mkdir -p "${out_dir}/${sub_dir}"; fi
+
+## Generate output prefix. May need to remove up to two extensions, in case
+## the search pattern ends with, e.g. ".fastq.gz"
+out_pref="${out_dir}/${patt%.*}"
+out_pref="${out_pref%.*}"
 
 
 ## If search pattern ends in fastq.gz or fq.gz, then we are assuming interleaved format
@@ -100,15 +101,15 @@ else
 fi
 
 
+## Get RG tag info from fastq read IDs
 ## For some reason, the barcode indexes in FASTQ files can contain some N
 ## values for the first few reads. I don't know the significance of this. 
-## Let's just grab line 10,001:
-## NOTE: In the case of concatenated fastq files, flowcells, lanes,
-## barcodes, etc. may all vary within a file.
-id_line=$(zcat "$fq" | head -n 10001 | tail -n 1)
+## Let's just grab line 50,001:
+## NOTE: Concatenated fastqs will contain multiple read groups
+id_line=$(zcat "$fq" | head -n 50001 | tail -n 1)
 fcell=$(echo "$id_line" | cut -d ":" -f 3)
 lane=$(echo "$id_line" | cut -d ":" -f 4)
-if [[ "$id_line" = @SRR* ]]; then
+if [[ "$id_line" == @SRR* ]]; then
     bcode=$(echo "$id_line" | cut -d "." -f 1 | sed 's/^@//')
 else
     bcode=$(echo "$id_line" | cut -d ":" -f 10)
@@ -117,43 +118,42 @@ fi
 
 ## Run bowtie for either paired or interleaved formats
 ref="${ref%.*}"
-rg_sm=$(basename "$upsamp")
 if [[ "$patt" == *fastq.gz ]] || [[ "$patt" == *fq.gz ]]; then
-    bowtie2 -x "${ref}" \
+    bowtie2 -x "$ref" \
         --threads $SLURM_NTASKS \
-        --rg-id "${rg_sm}.${fcell}.${lane}.${bcode}" \
-        --rg SM:"$rg_sm" \
+        --rg-id "${samp}.${fcell}.${lane}.${bcode}" \
+        --rg SM:"$samp" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}.${lane}" \
-        --rg LB:"${rg_sm}.lib01" \
+        --rg LB:"${samp}.lib01" \
         --sensitive-local \
         --phred33 \
         --interleaved "$fq" |
-        samtools sort -n -T "${out_dir}/${upsamp}sort1" -O SAM - |
+        samtools sort -n -T "${out_pref}_sort1" -O SAM - |
         samtools fixmate -m -O SAM - - |
-        samtools sort -T "${out_dir}/${upsamp}sort2" -O SAM - |
-        samtools markdup - "${out_dir}/${upsamp}.bam"
+        samtools sort -T "${out_pref}_sort2" -O SAM - |
+        samtools markdup - "${out_pref}.bam"
 else
-    bowtie2 -x "${ref}" \
+    bowtie2 -x "$ref" \
         --threads $SLURM_NTASKS \
-        --rg-id "${rg_sm}.${fcell}.${lane}.${bcode}" \
-        --rg SM:"$rg_sm" \
+        --rg-id "${samp}.${fcell}.${lane}.${bcode}" \
+        --rg SM:"$samp" \
         --rg PL:ILLUMINA \
         --rg PU:"${fcell}.${lane}" \
-        --rg LB:"${rg_sm}.lib01" \
+        --rg LB:"${samp}.lib01" \
         --sensitive-local \
         --phred33 \
         -1 "$fq" \
         -2 "$fq2" |
-        samtools sort -n -T "${out_dir}/${upsamp}sort1" -O SAM - |
+        samtools sort -n -T "${out_pref}_sort1" -O SAM - |
         samtools fixmate -m -O SAM - - |
-        samtools sort -T "${out_dir}/${upsamp}sort2" -O SAM - |
-        samtools markdup - "${out_dir}/${upsamp}.bam"
+        samtools sort -T "${out_pref}_sort2" -O SAM - |
+        samtools markdup - "${out_pref}.bam"
 fi
 
 
 ## Index BAM file using .csi index format
-samtools index -c "${out_dir}/${upsamp}.bam"
+samtools index -c "${out_pref}.bam"
 
 echo
 echo "End time:"
