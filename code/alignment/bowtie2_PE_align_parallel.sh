@@ -45,11 +45,11 @@ shopt -s nullglob
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
 fastq_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
-patterns_file="/home/brian.ward/search_pattern_files/NOT_v1_hapmap_filt_fqs.txt"
+patterns_file="/home/brian.ward/search_pattern_files/failed_align_fqs.txt"
 out_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
 ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
-## Convert sample name to uppercase? (TRUE/FALSE)
+## Convert sample name in RG line of BAM header to uppercase? (TRUE/FALSE)
 name2upper="TRUE"
 
 
@@ -77,6 +77,8 @@ array_ind=$1
 
 ## Get search pattern string
 patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+echo
+echo "Input search pattern: ${patt}"
 
 ## Get sample name; convert sample name to uppercase if specified
 samp=$(basename "$patt" | sed 's/_.*//')
