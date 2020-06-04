@@ -28,6 +28,8 @@
 ##      since the script will do so without any regard for the contents of the
 ##      files. For example, it will merge alignments from different read groups
 ##      (i.e. flowcell/lane combo) and alignments made with different aligners.
+##   3) The script will overwrite any preexisting .bam file located at the output
+##      path.
 ################################################################################      
 
 
@@ -35,7 +37,7 @@
 
 in_bams_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
 out_bams_dir="/project/guedira_seq_map/brian/US_excap/v1_merged_mq20_bams"
-patterns_file="/home/brian.ward/search_pattern_files/CHINESE_SPRING_pattern.txt"
+patterns_file="/home/brian.ward/search_pattern_files/failed_bam_merge_patterns.txt"
 
 ## Convert sample name in RG line of BAM header to uppercase? (TRUE/FALSE)
 name2upper="TRUE"
@@ -68,10 +70,12 @@ mkdir -p "$out_bams_dir"
 
 ## Get the input pattern
 patt=$(head -n "$array_ind" "$patterns_file" | tail -n 1)
+echo
+echo "Input search pattern: ${patt}"
 
 ## Prepend "/" and "_" to pattern if necessary for greater specificity
-if [[ "$patt" != /* ]]; then "$patt"="/${patt}"; fi
-if [[ "$patt" != *_ ]]; then "$patt"="${patt}_"; fi
+if [[ "$patt" != /* ]]; then patt="/${patt}"; fi
+if [[ "$patt" != *_ ]]; then patt="${patt}_"; fi
 
 ## Strip out the "/" and "_" to isolate sample name
 samp=$(echo "$patt" | sed 's/^\///' | sed 's/_$//')
@@ -88,7 +92,7 @@ printf '%s\n' "${in_bams[@]}" | grep "$patt" > "${out_bams_dir}/${samp}_bam_list
 ## Merge and sort the BAM files
 ## This step currently does not perform any filtering, but can be customized
 ## with a call to samtools view
-samtools merge -c -b "${out_bams_dir}/${samp}_bam_list.txt" "${out_bams_dir}/${samp}.bam"
+samtools merge -f -b "${out_bams_dir}/${samp}_bam_list.txt" "${out_bams_dir}/${samp}.bam"
 	
 ## Filter by mapping quality if threshold is set to greater than 0
 if [[ "$min_qual" -gt 0 ]]; then
