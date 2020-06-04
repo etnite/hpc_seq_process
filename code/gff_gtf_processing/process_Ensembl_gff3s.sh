@@ -43,16 +43,16 @@ gff_file=$1
 
 ## Remove the ".gff3.gz" for the output name
 outname="${gff_file%.*}"
-outname=$(echo "${outname}" | sed 's/.gff3//')
+outname=$(echo "$outname" | sed 's/.gff3//')
 
 echo
 echo "Writing output to ${outname}_cleaned.gff3"
 echo
     
-zgrep -v ^"#" $gff_file |
+zgrep -v ^"#" "$gff_file" |
     sed -e 's/^Un/UN/' |
     grep "IWGSC" |
-    sort -k1,1 -k4,4n > ${outname}_sorted.gff3
+    sort -k1,1 -k4,4n > "${outname}_sorted.gff3"
 
 ## This code is from the Tabix manual
 #(grep ^"#" Triticum_aestivum.IWGSC.41.corrected_UN.gff3; grep -v ^"#" #Triticum_aestivum.IWGSC.41.corrected_UN.gff3 | grep -v "^$" | grep "\t" | #sort -k1,1 -k4,4n) > Triticum_aestivum.IWGSC.41.corrected_UN.sorted.gff3

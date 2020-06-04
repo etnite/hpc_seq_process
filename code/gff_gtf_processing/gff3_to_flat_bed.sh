@@ -46,15 +46,15 @@ gff_file=$1
 
 ## Remove the ".gff3.gz" for the output name
 outname="${gff_file%.*}"
-outname=$(echo "${outname}" | sed 's/.gff3//')
-outdir=$(dirname "${outname}")
+outname=$(echo "$outname" | sed 's/.gff3//')
+outdir=$(dirname "$outname")
 
-tmpfile=$(mktemp -p "${outdir}")
+tmpfile=$(mktemp -p "$outdir")
 
 ## Get only genes from .gff3 and sort 
-zgrep -P "\tgene\t" "${gff_file}" |
-    sort -k1,1 -k4,4n -k5,5n > "${tmpfile}"
+zgrep -P "\tgene\t" "$gff_file" |
+    sort -k1,1 -k4,4n -k5,5n > "$tmpfile"
 
-bedtools merge -i "${tmpfile}" > "${outname}"_flat.bed
+bedtools merge -i "$tmpfile" > "${outname}_flat.bed"
 
-rm "${tmpfile}"
+rm "$tmpfile"
