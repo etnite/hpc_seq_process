@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
-#source /home/gbg_lab_admin/miniconda3/bin/activate bwa_align_call
 
 
-## Call variants in parallel
+## Call variants using GNU parallel
 ##
 ## Brian Ward
 ## brian@brianpward.net
