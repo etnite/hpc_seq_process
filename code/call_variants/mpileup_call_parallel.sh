@@ -39,10 +39,10 @@ set -e
 
 #### User-defined constants ####
 
-bams_list="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams"
+bams_list="/home/brian.ward/US_excap_bam_list.txt"
 ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-regions_file=""
-out_dir="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
+regions_file="/home/brian.ward/region_files/v1_100Mb_window_regions.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/v1_variants/region_bcfs"
 mq_val=20
 
 
