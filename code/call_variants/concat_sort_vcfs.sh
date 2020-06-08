@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 
 ## Concatenate and sort VCF files
@@ -13,6 +12,8 @@ set -e
 ##
 ## In addition, it adds SNP IDs formatted S<chromosome>_<position>, left aligns
 ## indels, and normalizes reference alleles.
+##
+## NOTE: reference genome must be indexed with samtools faidx
 ################################################################################
 
 
@@ -22,7 +23,7 @@ set -e
 #SBATCH --partition=mem #name of the queue you are submitting job to
 #SBATCH --nodes=1 #Number of nodes
   ##SBATCH --ntasks=28  #Number of overall tasks - overrides tasks per node
-#SBATCH --ntasks-per-node=22 #number of cores/tasks
+#SBATCH --ntasks-per-node=10 #number of cores/tasks
 #SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=jane.doe@isp.com #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
@@ -32,8 +33,12 @@ set -e
 
 #### User-defined constants ####
 
-vcfs_list="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams"
-out_bcf="/project/genolabswheatphg/variants/SRW/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
+## Path to text file listing input VCFs or BCFs, one per line
+## Path to reference genome .fasta file
+## Path to write output BCF file to
+vcfs_list="/home/brian.ward/US_excap_region_bcfs.txt"
+ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+out_bcf="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_raw_variants.bcf"
 
 ## Maximum memory to use, which can be set to, e.g. "3G" for 3 gigabytes
 max_memory="10G"
@@ -52,16 +57,17 @@ mkdir -p "$out_dir"
 
 ## Normalize indels; discard all but one overlapping SNP, all but one overlapping indel
 bcftools concat --no-version \
-                --file-list "$vcfs_list" \
-                --output-type u |
-    bcftools sort --temp-dir "$out_dir" \
-                  --max-mem "$max_memory" \
-                  --output-type u |
-    bcftools annotate --set-id +'S%CHROM\_%POS' \
-                      --output-type u |
-    bcftools norm --fasta-ref "$ref_gen" \
-                  --threads $SLURM_NTASKS \
-                  --output-type b > "$out_bcf"
+    --file-list "$vcfs_list" \
+    --output-type u |
+bcftools sort --temp-dir "$out_dir" \
+    --output-type u |
+bcftools annotate --no-version \
+    --set-id +'S%CHROM\_%POS' \
+    --output-type u |
+bcftools norm --no-version \
+    --fasta-ref "$ref_gen" \
+    --threads $SLURM_NTASKS \
+    --output-type b > "$out_bcf"
  
 bcftools index -c "$out_bcf"
 

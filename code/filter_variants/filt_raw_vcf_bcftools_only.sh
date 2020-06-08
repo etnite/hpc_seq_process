@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-#source /home/gbg_lab_admin/miniconda3/bin/activate bwa_align_call
 
 
 ## Filter VCF file - single threaded
@@ -24,7 +23,10 @@ set -e
 ##
 ## BCFTools is designed to work with .bcf files. If .vcf files are supplied, it
 ## first converts them to .bcf format internally. Therefore, using a .bcf file 
-## as input is faster, though BCF files are often larger than .vcf.gz files.
+## as input is faster, though BCF files may be larger than .vcf.gz files.
+##
+## The script will output to either a .bcf file or .vcf.gz depending on the supplied
+## file extension 
 ################################################################################
 
 
@@ -35,8 +37,8 @@ set -e
   ##SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=06:00:00 #time allocated for this job hours:mins:seconds
-#SBATCH --mail-user=jane.doe@isp.com #enter your email address to receive emails
+#SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
@@ -46,10 +48,10 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/home/gbg_lab_admin/Array_60TB/wheat_exome_capture/bw2_ERSGGL_SRW_alignments/ERSGGL_SRW_merged_excap_GBS_wholechr_bw2.vcf.gz"
-vcf_out="/home/gbg_lab_admin/Array_60TB/wheat_exome_capture/bw2_ERSGGL_SRW_alignments/ERSGGL_SRW_merged_bw2_50miss_noUN_filt.vcf.gz"
+vcf_in="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_raw_variants.bcf"
+vcf_out="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_filt_variants.bcf"
 taxa_list="none"
-min_maf=0.03
+min_maf=0.05
 max_miss=0.5
 max_het=0.1
 min_dp=0
@@ -67,9 +69,22 @@ echo
 echo "Start time:"
 date
 
+## Get base name and extension of output file; set the output format
+ext="${vcf_out#*.}"
+base="${vcf_out%%.*}"
+if [[ "$ext" == "bcf" ]]; then
+    out_fmt="b"
+elif [[ "$ext" == "vcf.gz" ]]; then
+    out_fmt="z"
+else
+    echo "Please supply either a .bcf or .vcf.gz file for output path"
+    exit 1;
+fi
+
 ## Grab first letter of remove_unal
 remove_unal=${remove_unal:0:1}
 
+## Create output directory (if necessary) and temp directory
 out_dir=$(dirname "${vcf_out}")
 mkdir -p "${out_dir}"
 temp_dir="$(mktemp -d -p "${out_dir}")"
@@ -94,9 +109,9 @@ echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}"/filtering_params.txt
 ## If taxa_list exists, use to subset samples
 ## Otherwise retain all samples present in VCF file
 if [[ -f $taxa_list ]]; then
-	cp $taxa_list "${temp_dir}"/taxa_list.txt
+    cp $taxa_list "${temp_dir}"/taxa_list.txt
 else
-	bcftools query --list-samples $vcf_in > "${temp_dir}"/taxa_list.txt
+    bcftools query --list-samples $vcf_in > "${temp_dir}"/taxa_list.txt
 fi
 
 ## Some real bcftools power-user stuff here
@@ -112,7 +127,7 @@ if [[ $remove_unal == [Tt] ]]; then
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
-        --output-type z \
+        --output-type "$out_fmt" \
         --output "${vcf_out}"
 elif [[ $remove_unal == [Ff] ]]; then
 	bcftools view "${vcf_in}" \
@@ -123,7 +138,7 @@ elif [[ $remove_unal == [Ff] ]]; then
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
-        --output-type z \
+        --output-type "$out_fmt" \
         --output "${vcf_out}"
 else
 	echo "Please supply 'true' or 'false' for remove_unal"
@@ -131,6 +146,9 @@ else
 fi
 
 bcftools index -c "${vcf_out}"
+
+## Generate summary stats
+bcftools stats "${vcf_out}" > "${base}_stats.txt
 
 
 ## Generate summary stats using TASSEL
@@ -141,7 +159,7 @@ bcftools index -c "${vcf_out}"
 #           -export "${out_dir}"/summary
 
 rm -rf $temp_dir
-#source deactivate
+
 
 echo
 echo "End time:"
