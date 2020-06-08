@@ -37,7 +37,7 @@ set -e
   ##SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=4:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -49,14 +49,14 @@ set -e
 ## Note that SNP depth and proportion of missing data are highly correlated
 
 vcf_in="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_raw_variants.bcf"
-vcf_out="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_filt_variants.bcf"
+vcf_out="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_filt08_variants.bcf"
 taxa_list="none"
 min_maf=0.05
-max_miss=0.5
+max_miss=0.8
 max_het=0.1
 min_dp=0
 max_dp=1e6
-remove_unal="true"
+remove_unal="false"
 snpgap=3
 indelgap=3
 
@@ -77,7 +77,7 @@ if [[ "$ext" == "bcf" ]]; then
 elif [[ "$ext" == "vcf.gz" ]]; then
     out_fmt="z"
 else
-    echo "Please supply either a .bcf or .vcf.gz file for output path"
+    echo "ERROR - Please supply either a .bcf or .vcf.gz file for output path"
     exit 1;
 fi
 
@@ -89,7 +89,7 @@ out_dir=$(dirname "${vcf_out}")
 mkdir -p "${out_dir}"
 temp_dir="$(mktemp -d -p "${out_dir}")"
 if [[ ! "${temp_dir}" || ! -d "${temp_dir}" ]]; then
-    echo "Could not create temporary directory"
+    echo "ERROR - Could not create temporary directory"
     exit 1;
 fi
 
@@ -141,14 +141,14 @@ elif [[ $remove_unal == [Ff] ]]; then
         --output-type "$out_fmt" \
         --output "${vcf_out}"
 else
-	echo "Please supply 'true' or 'false' for remove_unal"
+	echo "ERROR - Please supply 'true' or 'false' for remove_unal"
 	exit 1;
 fi
 
 bcftools index -c "${vcf_out}"
 
 ## Generate summary stats
-bcftools stats "${vcf_out}" > "${base}_stats.txt
+bcftools stats "${vcf_out}" > "${base}_stats.txt"
 
 
 ## Generate summary stats using TASSEL
