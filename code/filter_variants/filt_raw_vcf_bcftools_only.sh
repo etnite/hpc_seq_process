@@ -57,6 +57,7 @@ max_het=0.1
 min_dp=0
 max_dp=1e6
 remove_unal="false"
+het2miss="true"
 snpgap=3
 indelgap=3
 
@@ -81,8 +82,9 @@ else
     exit 1;
 fi
 
-## Grab first letter of remove_unal
-remove_unal=${remove_unal:0:1}
+## Get first letter of true/false options
+remove_unal="${remove_unal:0:1}"
+het2miss="${het2miss:0:1}"
 
 ## Create output directory (if necessary) and temp directory
 out_dir=$(dirname "${vcf_out}")
@@ -114,10 +116,26 @@ else
     bcftools query --list-samples $vcf_in > "${temp_dir}"/taxa_list.txt
 fi
 
-## Some real bcftools power-user stuff here
+## Big if-else block for different actions depending on remove_unal and het2miss
 echo "Filtering VCF..."
 echo
-if [[ $remove_unal == [Tt] ]]; then
+if [[ "$remove_unal" == [Tt] && "$het2miss" == [Tt] ]]; then
+    bcftools view "${vcf_in}" \
+        --samples-file "${temp_dir}"/taxa_list.txt \
+        --output-type u |
+    bcftools +setGT - -- --targets q \
+        --include 'GT="het"' \
+        --new-gt "./." \
+        --output-type u |
+    bcftools view - \
+        --targets ^UN,Un \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --output-type u |
+    bcftools filter --SnpGap $snpgap \
+        --IndelGap $indelgap \
+        --output-type "$out_fmt" \
+        --output "${vcf_out}"
+elif [[ "$remove_unal" == [Tt] && "$het2miss" == [Ff] ]]; then
     bcftools view "${vcf_in}" \
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
@@ -129,7 +147,22 @@ if [[ $remove_unal == [Tt] ]]; then
         --IndelGap $indelgap \
         --output-type "$out_fmt" \
         --output "${vcf_out}"
-elif [[ $remove_unal == [Ff] ]]; then
+elif [[ $remove_unal == [Ff] && "$het2miss" == [Tt] ]]; then
+    bcftools view "${vcf_in}" \
+        --samples-file "${temp_dir}"/taxa_list.txt \
+        --output-type u |
+    bcftools +setGT - -- --targets q \
+        --include 'GT="het"' \
+        --new-gt "./." \
+        --output-type u |
+    bcftools view - \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --output-type u |
+    bcftools filter --SnpGap $snpgap \
+        --IndelGap $indelgap \
+        --output-type "$out_fmt" \
+        --output "${vcf_out}"
+elif [[ $remove_unal == [Ff] && "$het2miss" == [Ff] ]]; then
 	bcftools view "${vcf_in}" \
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
@@ -141,7 +174,7 @@ elif [[ $remove_unal == [Ff] ]]; then
         --output-type "$out_fmt" \
         --output "${vcf_out}"
 else
-	echo "ERROR - Please supply 'true' or 'false' for remove_unal"
+	echo "ERROR - Please supply 'true' or 'false' for remove_unal and het2miss"
 	exit 1;
 fi
 
