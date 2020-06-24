@@ -106,29 +106,29 @@ if [[ ! "${temp_dir}" || ! -d "${temp_dir}" ]]; then
 fi
 
 ## Echo input parameters to output dir
-echo -e "Input VCF\t${vcf_in}" > "${out_dir}"/filtering_params.txt
-echo -e "Output VCF\t${vcf_out}" >> "${out_dir}"/filtering_params.txt
-echo -e "Taxa subset list\t${taxa_list}" >> "${out_dir}"/filtering_params.txt
-echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}"/filtering_params.txt
-echo -e "Max missing proportion\t${max_miss}" >> "${out_dir}"/filtering_params.txt
-echo -e "Max het. proportion\t${max_het}" >> "${out_dir}"/filtering_params.txt
-echo -e "Min. average depth\t${min_dp}" >> "${out_dir}"/filtering_params.txt
-echo -e "Max average depth\t${max_dp}" >> "${out_dir}"/filtering_params.txt
-echo -e "Unaligned contigs removed?\t${remove_unal}" >> "${out_dir}"/filtering_params.txt
-echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${out_dir}"/filtering_params.txt
-echo -e "SNP overlap gap\t${snpgap}" >> "${out_dir}"/filtering_params.txt
-echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}"/filtering_params.txt
+echo -e "Input VCF\t${vcf_in}" > "${base}_filt_params.txt"
+echo -e "Output VCF\t${vcf_out}" >> "${base}_filt_params.txt"
+echo -e "Taxa subset list\t${taxa_list}" >> "${base}_filt_params.txt"
+echo -e "Minimum MAF\t${min_maf}" >> "${base}_filt_params.txt"
+echo -e "Max missing proportion\t${max_miss}" >> "${base}_filt_params.txt"
+echo -e "Max het. proportion\t${max_het}" >> "${base}_filt_params.txt"
+echo -e "Min. average depth\t${min_dp}" >> "${base}_filt_params.txt"
+echo -e "Max average depth\t${max_dp}" >> "${base}_filt_params.txt"
+echo -e "Unaligned contigs removed?\t${remove_unal}" >> "${base}_filt_params.txt"
+echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${base}_filt_params.txt"
+echo -e "SNP overlap gap\t${snpgap}" >> "${base}_filt_params.txt"
+echo -e "Indel overlap gap\t${indelgap}" >> "${base}_filt_params.txt"
 
 ## If taxa_list exists, use to subset samples
 ## Otherwise retain all samples present in VCF file
-if [[ -f $taxa_list ]]; then
-    cp $taxa_list "${temp_dir}"/taxa_list.txt
+if [[ -f "$taxa_list" ]]; then
+    cp "$taxa_list" "${temp_dir}/taxa_list.txt"
 else
-    bcftools query --list-samples $vcf_in > "${temp_dir}"/taxa_list.txt
+    bcftools query --list-samples "$vcf_in" > "${temp_dir}/taxa_list.txt"
 fi
 
 
-## Big if-else block for different actions depending on remove_unal and het2miss
+## Big copy-pasted if-else block for different actions depending on remove_unal and het2miss
 echo "Filtering VCF..."
 echo
 if [[ "$remove_unal" == [Tt] && "$het2miss" == [Tt] ]]; then
@@ -152,7 +152,7 @@ elif [[ "$remove_unal" == [Tt] && "$het2miss" == [Ff] ]]; then
         --output-type u |
     bcftools view - \
         --targets ^UN,Un \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -177,7 +177,7 @@ elif [[ $remove_unal == [Ff] && "$het2miss" == [Ff] ]]; then
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
     bcftools view - \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het} " \
+        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -191,7 +191,7 @@ fi
 bcftools index -c "${vcf_out}"
 
 ## Generate summary stats
-bcftools stats "${vcf_out}" > "${base}_stats.txt"
+bcftools stats "$vcf_out" > "${base}_stats.txt"
 
 ## Create plots from summary stats
 mkdir "${base}_plots"
@@ -204,7 +204,7 @@ plot-vcfstats --prefix "${base}_plots" --no-PDF "${base}_stats.txt"
 #           -endPlugin \
 #           -export "${out_dir}"/summary
 
-rm -rf $temp_dir
+rm -rf "$temp_dir"
 
 
 echo

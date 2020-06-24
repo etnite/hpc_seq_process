@@ -46,7 +46,10 @@ max_memory="10G"
 
 #### Executable ####
 
-module load bcftools
+## Using conda here to utilize bcftools plugins and plot-vcfstats
+#module load bcftools
+module load miniconda
+source activate htslib
 
 echo
 echo "Start time:"
@@ -54,6 +57,7 @@ date
 
 out_dir=$(dirname "$out_bcf")
 mkdir -p "$out_dir"
+base="${out_bcf%%.*}"
 
 ## Normalize indels; discard all but one overlapping SNP, all but one overlapping indel
 bcftools concat --no-version \
@@ -70,6 +74,13 @@ bcftools norm --no-version \
     --output-type b > "$out_bcf"
  
 bcftools index -c "$out_bcf"
+
+## Generate summary stats
+bcftools stats "${out_bcf}" > "${base}_stats.txt"
+
+## Create plots from summary stats
+mkdir "${base}_plots"
+plot-vcfstats --prefix "${base}_plots" --no-PDF "${base}_stats.txt"
 
 echo
 echo "End time:"
