@@ -37,27 +37,30 @@ setting, it is usually easiest to use Bioconda environments
 
 ## Typical Workflow - Short Variant Identification
 
-This repository is primarily set up to use the samtools/bcftools variant calling pipeline. Steps below would typically be run using a dispatcher script for parallel execution.
+This repository is primarily set up to use the samtools/bcftools variant calling pipeline. 
+Steps below would typically be run using a dispatcher script for parallel execution. 
+Note that for samtools/bcftools variant calling, read groups (e.g. different
+flowcell/lane combinations) can be concatenated into single fastq files for each sample.
+However, for modern GATK workflows, it is more common to work with separate files for
+individual read groups.
 
 For short variant identification, a common pre-processing workflow would be:
 
-1. run code/concat_fastqs/concat_[paired_]fastqs_parallel.sh to generate a single fastq file
-per sample for multiple single-end or paired input fastq files
-2. run code/fastq_filt_trim/bbduk_filt_trim_[PE/SE]_parallel.sh to clean fastq reads
+1. Run code/fastq_filt_trim/bbduk_filt_trim_[PE/SE]_parallel.sh to clean fastq reads
 for paired-end or single-end reads, respectively
-3. run code/alignment/bowtie2_[PE/SE]_align_parallel.sh to align reads for
+2. Run code/alignment/bowtie2_[PE/SE]_align_parallel.sh to align reads for
 paired end or single end reads using bowtie2 and create single sample bam alignment files
-4. (optional) run code/bam_manipulations/filt_bam_files_parallel.sh to filter bam files after alignment
-(note that bcftools mpileup can perform this filtering on the fly, but this step may still be of use
-if creating gVCFs for use in GATK)
-5. (optional) - for further analysis in GATK, convert BAM files to single-sample gVCF files
-using code/gvcf_creation/create_single_samp_gvcf_parallel.sh
+3. (optional) run code/bam_manipulations/merge_bams_parallel.sh to merge and filter BAM files (e.g.
+to create one filtered BAM file per sample)
+5. (optional) - for some applications, e.g. practical haplotype graph creation, convert BAM files
+into single-sample gVCFs using code/gvcf_creation/create_single_samp_gvcf_parallel.sh
 
 For variant calling, the following steps may then be performed after bam file
 generation:
 
-1. run code/call_variants/call_variants.sh
-2. run code/call_variants/filter_raw_vcf.sh
-3. run code/call_variants/rename_annotate_split_vcf.sh to (optionally) rename samples,
+1. Run code/call_variants/mpileup_call_parallel.sh - this script can run in parallel on multiple
+regions of the genome, for instance those created with code/make_regions_file.py
+2. Run code/call_variants/concat_sort_vcfs.sh to concatenate individual region VCFs/BCFs into one file
+3. (optional) Run code/call_variants/rename_annotate_split_vcf.sh to rename samples,
 predict variant transcriptional effects using a genome annotation file, and create subset 
 VCF files consisting of just indels and just SNPs.
