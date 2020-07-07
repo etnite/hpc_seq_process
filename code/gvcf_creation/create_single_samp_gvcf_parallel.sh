@@ -27,7 +27,12 @@ set -e
 ##
 ##   gatk --java-options "-Xmx6g" HaplotypeCaller ...
 ##
-## will limit memory usage to 6GB.
+## will limit memory usage to 6GB. Although HaplotypeCaller can output bgzipped
+## gVCF files directly, this always seems to overrun memory in my testing. That
+## is why this script uses the less efficient method of outputting a non-compressed
+## VCF file, and then compressing and indexing it. Note that if this script is
+## being run in parallel on many files simultaneously, this can lead to the
+## temporary creation of files that take up a huge amount of space.
 ################################################################################
 
 
