@@ -35,9 +35,9 @@
 
 #### User-Defined Constants ####
 
-in_bams_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
-out_bams_dir="/project/guedira_seq_map/brian/US_excap/v1_merged_mq20_bams"
-patterns_file="/home/brian.ward/search_pattern_files/failed_bam_merge_patterns.txt"
+in_bams_dir="/project/guedira_seq_map/brian/US_excap/v2_alignments"
+out_bams_dir="/project/guedira_seq_map/brian/US_excap/v2_merged_mq20_bams"
+patterns_file="/home/brian.ward/search_pattern_files/v2_alignments_search_patterns.txt"
 
 ## Convert sample name in RG line of BAM header to uppercase? (TRUE/FALSE)
 name2upper="TRUE"
