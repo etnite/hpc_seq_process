@@ -1,7 +1,5 @@
 #!/bin/bash
-set -e
-#source /home/gbg_lab_admin/miniconda3/bin/activate bwa_align_call
-
+#set -e
 
 ## Rename samples, annotate variants, split SNPs and indels
 ##
@@ -9,13 +7,15 @@ set -e
 ## brian@brianpward.net
 ## https://github.com/etnite
 ##
-## INPUT FILES:
+## INPUTS:
 ##
 ##   1. VCF file
 ##   2. reference .fasta file (must be indexed with samtools)
 ##   3. .gff3 annotations file
 ##   4. (optional) two-column tab-delimited file, with current sample names in
 ##      first column, and corresponding desired sample names in second column. 
+##   5. "true" or "false" supplied for "split_file" argument, which controls
+##      whether or not indels and SNPs are separated into different output files
 ##
 ## OUTPUTS:
 ##
@@ -46,6 +46,7 @@ vcf_in="/project/genolabswheatphg/variants/KS_HRW/filt_vcf/KS_HRW_filt.vcf.gz"
 ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 gff="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.44.gff3.gz"
 lookup_file="none"
+split_file="false"
 
 
 #### Executable ####
@@ -56,28 +57,44 @@ echo
 echo "Start time:"
 date
 
-out_dir=$(dirname ${vcf_in})
-base=$(echo ${vcf_in} | sed 's/.vcf.gz$//')
+## Get the output format and file extension
+out_dir=$(dirname "$vcf_in")
+ext="${vcf_in##*.}"
+base="${vcf_in%.*}"
+base="${vcf_in%.*}"
+if [[ "$ext" == "gz" ]]; then
+    out_fmt="z"
+    out_ext=".vcf.gz"
+elif [[ "$ext" == "bcf" ]]; then
+    out_fmt="b"
+    out_ext=".bcf"
+else
+    echo
+    echo "Input file should be either in BCF (.bcf) or gzipped VCF (.vcf.gz) format"
+    exit 1;
+fi
+
 
 ## If sample name lookup file is supplied, then replace sample names
 ## and call consequences. Otherwise, skip sample renaming step
-if [[ -f $lookup_file ]]; then
-	bcftools reheader --samples $lookup_file $vcf_in |
-        bcftools csq -f $ref -g $gff -p a -Oz -o ${base}_csq.vcf.gz
+if [[ -f "$lookup_file" ]]; then
+	bcftools reheader --samples "$lookup_file" "$vcf_in" |
+        bcftools csq -f "$ref" -g "$gff" -p a -O "$out_fmt" -o "${base}_csq${out_ext}"
 else
-    bcftools csq -f $ref -g $gff -p a -Oz $vcf_in -o ${base}_csq.vcf.gz
+    bcftools "$vcf_in" csq -f "$ref" -g "$gff" -p a -O "$out_fmt" -o "${base}_csq${out_ext}"
 fi
 
-bcftools index -c ${base}_csq.vcf.gz
+bcftools index -c "${base}_csq${out_ext}"
 
-## Create SNP-only and indel-only files
-base=$(echo ${vcf_in} | sed 's/.vcf.gz$//')
-bcftools view --type snps -Oz -o ${base}_csq_snps_only.vcf.gz ${base}_csq.vcf.gz
-bcftools index -c ${base}_csq_snps_only.vcf.gz
-bcftools view --type indels -Oz -o ${base}_csq_indels_only.vcf.gz ${base}_csq.vcf.gz
-bcftools index -c ${base}_csq_indels_only.vcf.gz
-
-#source deactivate
+## Create SNP-only and indel-only files if the user specified
+split_file="${split_file:0:1}"
+split_file="${split_file^^}"
+if [[ "$split_file" == "T" ]]; then
+    bcftools view --type snps -O "$out_fmt" -o "${base}_csq_snps_only${out_ext}" "${base}_csq${out_ext}"
+    bcftools index -c "${base}_csq_snps_only${out_ext}"
+    bcftools view --type indels -O "$out_fmt" -o "${base}_csq_indels_only${out_ext}" "${base}_csq${out_ext}"
+    bcftools index -c "${base}_csq_indels_only${out_ext}"
+fi
 
 echo
 echo "End time:"

@@ -27,10 +27,10 @@ shopt -s nullglob
 
 #### User-defined constants ####
 
-in_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs"
+in_dir="/project/guedira_seq_map/brian/US_excap/raw_fastqs/Raleigh_SRWW/round2"
 adapt_fasta="/home/brian.ward/repos/hpc_seq_process/bbduk_38.84_Illumina_adapters.fa"
-patterns_file="/home/brian.ward/search_pattern_files/updated_raw_fastq_patterns.txt"
-out_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
+patterns_file="/home/brian.ward/search_pattern_files/SRW_round2_raw_fq.txt"
+out_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs/Raleigh_SRWW/round2"
 
 
 #### Executable  ####
