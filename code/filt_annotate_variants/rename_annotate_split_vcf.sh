@@ -13,7 +13,7 @@
 ##   2. reference .fasta file (must be indexed with samtools)
 ##   3. .gff3 annotations file
 ##   4. (optional) two-column tab-delimited file, with current sample names in
-##      first column, and corresponding desired sample names in second column. 
+##      first column, and corresponding desired sample names in second column.
 ##   5. "true" or "false" supplied for "split_file" argument, which controls
 ##      whether or not indels and SNPs are separated into different output files
 ##
@@ -23,6 +23,11 @@
 ##      sample names updated.
 ##   2. New VCF file containing just SNPs
 ##   3. New VCF file containing just indels
+##
+## NOTE: This script expects a conda environment named "htslib" which includes
+## a reasonably recent version of BCFTools. The reason for this is that the
+## BCFTools module loaded on the cluster doesn't include the suite of BCFTools
+## plugins, and the fill-tags plugin is required in this script
 ################################################################################
 
 
@@ -33,7 +38,7 @@
   ##SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=08:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=05:00:00 #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -42,16 +47,17 @@
 
 #### User-defined constants ####
 
-vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_raw_v1_variants/v1_raw_variants.bcf"
+vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_miss08_maf005_variants/v1_miss08_maf005_variants.bcf"
 ref="/lustre/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 gff="/lustre/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.44.gff3.gz"
 lookup_file="none"
-split_file="false"
+split_file="true"
 
 
 #### Executable ####
 
-module load bcftools
+module load miniconda
+source activate htslib
 
 echo
 echo "Start time:"
@@ -74,13 +80,15 @@ else
 fi
 
 
-## If sample name lookup file is supplied, then replace sample names
+## If sample name lookup file is supplied, then subset/replace sample names
 ## and call consequences. Otherwise, skip sample renaming step
 if [[ -f "$lookup_file" ]]; then
-	bcftools reheader "$vcf_in" --samples "$lookup_file" |
-        bcftools csq -f "$ref" -g "$gff" -p a -O "$fmt" -o "${base}_csq.${ext}"
+    bcftools reheader "$vcf_in" --samples "$lookup_file" |
+    bcftools +fill-tags -Ou -- -t AF,MAF,F_MISSING |
+    bcftools csq -f "$ref" -g "$gff" -p a -O "$fmt" -o "${base}_csq.${ext}"
 else
-    bcftools csq "$vcf_in" -f "$ref" -g "$gff" -p a -O "$fmt" -o "${base}_csq.${ext}"
+    bcftools +fill-tags "$vcf_in" -Ou -- -t AF,MAF,F_MISSING |
+    bcftools csq -f "$ref" -g "$gff" -p a -O "$fmt" -o "${base}_csq.${ext}"
 fi
 
 bcftools index -c "${base}_csq.${ext}"
