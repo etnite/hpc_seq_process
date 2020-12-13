@@ -37,16 +37,16 @@ NOTES:
 
 ## If there is no .gff3 file, supply any string that doesn't point to a file,
 ## e.g. "none"
-fai_path = '/home/brian/Downloads/Ceres_downloads/Triticum_aestivum.IWGSC.dna.toplevel.fa.fai'
-gff_path = '/home/brian/Downloads/Ceres_downloads/IWGSC_v1.1_HC_20170706_cleaned.gff3.gz'
-out_dir  = '/home/brian/Downloads/Ceres_downloads/test_chrom_split'
+fai_path = '/lustre/project/genolabswheatphg/v2_refseq/iwgsc_refseqv2.0_all_chromosomes.fa.fai'
+gff_path = 'none'
+out_dir  = '/home/brian.ward/region_files'
 
 ## Distance over which to merge together genes that are near each other
 ## Amount of flanking sequence or "buffer" to add to either end of genic regions
 ## Desired window size
 merge_dist = 5000
 flank_dist = 2000
-window_size = 20000000
+window_size = 100000000
 
 
 #### Executable ###############################################################

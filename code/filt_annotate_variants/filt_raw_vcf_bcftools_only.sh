@@ -13,6 +13,12 @@ set -e
 ## missing data would theoretically be allowed, while setting max_miss to 0 will only
 ## allow SNPs without any missing data
 ##
+## The user can supply a file listing names of samples to keep, one per line. This can
+## contain two columns, which is useful if you want to list samples to keep and in the future
+## give them new names in column two using the script rename_annotate_split_vcf.sh. Only the
+## first column will be used in this script. SAMPLES ARE ALWAYS SORTED in the output,
+## regardless of whether sample subsetting is performed.
+##
 ## For depth filtering, this script uses the DP value in the INFO column. This
 ## value is the total depth of reads that passed the quality control parameters
 ## defined during SNP calling, (e.g. minimum mapq value). FORMAT DP values, if
@@ -32,7 +38,7 @@ set -e
 ## attempt to create plots of these statistics using the plot-vcfstats script that
 ## is bundled with bcftools. Python 3 and matplotlib are required for this step.
 ## If they aren't installed, an error will be printed, but it will not otherwise
-## effect the output of the script.
+## effect the VCF/BCF file output by the script.
 ################################################################################
 
 
@@ -43,7 +49,7 @@ set -e
   ##SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=5:00:00 #time allocated for this job hours:mins:seconds
+#SBATCH --time=06:00:00 time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -54,10 +60,12 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_raw_variants.bcf"
-vcf_out="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_filt08_variants.bcf"
+vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_raw_v1_variants/v1_raw_variants.bcf"
+vcf_out="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_miss08_maf003_variants/v1_miss08_maf003_variants.bcf"
+#vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/1A_filt_test/1A_v1_raw_variants.bcf"
+#vcf_out="/lustre/project/genolabswheatphg/US_excap/v1_variants/1A_filt_test/new_code_1A_v1_filt_variants.bcf"
 taxa_list="none"
-min_maf=0.05
+min_maf=0.03
 max_miss=0.8
 max_het=1
 min_dp=0
@@ -84,7 +92,8 @@ ext="${vcf_out#*.}"
 base="${vcf_out%%.*}"
 if [[ "$ext" == "bcf" ]]; then
     out_fmt="b"
-elif [[ "$ext" == "vcf.gz" ]]; then
+elif [[ "$ext" == "gz" ]]; then
+    ext="vcf.gz"
     out_fmt="z"
 else
     echo "ERROR - Please supply either a .bcf or .vcf.gz file for output path"
@@ -122,13 +131,16 @@ echo -e "Indel overlap gap\t${indelgap}" >> "${base}_filt_params.txt"
 ## If taxa_list exists, use to subset samples
 ## Otherwise retain all samples present in VCF file
 if [[ -f "$taxa_list" ]]; then
-    cp "$taxa_list" "${temp_dir}/taxa_list.txt"
+    cut -f 1 "$taxa_list" | sort > "${temp_dir}/taxa_list.txt"
 else
-    bcftools query --list-samples "$vcf_in" > "${temp_dir}/taxa_list.txt"
+    bcftools query --list-samples "$vcf_in" | sort > "${temp_dir}/taxa_list.txt"
 fi
 
+up_freq=$(echo "1 - $min_maf" | bc -l)
 
 ## Big copy-pasted if-else block for different actions depending on remove_unal and het2miss
+## Using het2miss will leave you with some SNPs that only have one allele, so some extra steps
+## Are necessary to get rid of these
 echo "Filtering VCF..."
 echo
 if [[ "$remove_unal" == [Tt] && "$het2miss" == [Tt] ]]; then
@@ -138,9 +150,10 @@ if [[ "$remove_unal" == [Tt] && "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "./." |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
     bcftools view - \
         --targets ^UN,Un \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -150,9 +163,10 @@ elif [[ "$remove_unal" == [Tt] && "$het2miss" == [Ff] ]]; then
     bcftools view "${vcf_in}" \
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
     bcftools view - \
         --targets ^UN,Un \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -165,8 +179,9 @@ elif [[ $remove_unal == [Ff] && "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "./." |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
     bcftools view - \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \
@@ -176,8 +191,9 @@ elif [[ $remove_unal == [Ff] && "$het2miss" == [Ff] ]]; then
 	bcftools view "${vcf_in}" \
         --samples-file "${temp_dir}"/taxa_list.txt \
         --output-type u |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
     bcftools view - \
-        --exclude "F_MISSING > ${max_miss} || MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
         --output-type u |
     bcftools filter --SnpGap $snpgap \
         --IndelGap $indelgap \

@@ -27,22 +27,27 @@ set -e
 ##
 ##   gatk --java-options "-Xmx6g" HaplotypeCaller ...
 ##
-## will limit memory usage to 6GB.
+## will limit memory usage to 6GB. Although HaplotypeCaller can output bgzipped
+## gVCF files directly, this always seems to overrun memory in my testing. That
+## is why this script uses the less efficient method of outputting a non-compressed
+## VCF file, and then compressing and indexing it. Note that if this script is
+## being run in parallel on many files simultaneously, this can lead to the
+## temporary creation of files that take up a huge amount of space.
 ################################################################################
 
 
 #### User-defined Constants ####
 
 ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-bam_list="/project/genolabswheatphg/alignments/ERSGGL_SRW_bw2_bams/SRW_merged_excap_GBS_wholechrom_bw2_bams_mq20_filt"
-out_dir="/project/genolabswheatphg/gvcfs/SRW_single_samp_bw2_excap_GBS_mq20"
+bam_list="/home/brian.ward/search_pattern_files/big_mq20_bams.txt"
+out_dir="/lustre/project/guedira_seq_map/brian/US_excap/v1_mq20_gVCFs"
 
 
 #### Executable ####
 
 module load tabix
 module load miniconda
-source activate gatk
+source activate gatk4
 
 mkdir -p "$out_dir"
 
@@ -63,5 +68,5 @@ gatk --java-options "-Xmx3g" HaplotypeCaller \
      --output "$out_file"
 
 ## Compress and index
-bgzip "$out_file"
+bgzip --force "$out_file"
 tabix --csi --preset vcf "${out_file}.gz" 
