@@ -75,19 +75,20 @@ fi
 
 ## Get flowcell, lane, and barcode metadata from R1 fastq file
 ## Get 10,001th line. Sometimes barcodes can contain Ns at beginning of file 
-id_line=$(zcat "$fq1" | head -n 10001 | tail -n 1)
+id_line=$(zcat "$fq" | head -n 10001 | tail -n 1)
 fcell=$(echo $id_line | cut -d ":" -f 3)
 lane=$(echo $id_line | cut -d ":" -f 4)
 bcode=$(echo $id_line | cut -d ":" -f 10)
 
-## Create name of output .bam file
-out_bam="${fq_pattern}".bam
+## Create name of output .bam file (need to remove fastq filename extension)
+out_bam="${fq_pattern%.*}"
+out_bam="${out_bam%.*}".bam
 
 ## Run Picard FastqToSam
 ## Creates single-ended or interleaved BAM sorted by read names
 if [[ "$fq_pattern" == *fastq.gz ]] || [[ "$fq_pattern" == *fq.gz ]]; then
     gatk FastqToSam \
-        -F1 "$fq1" \
+        -F1 "$fq" \
         -O "$out_dir"/"$out_bam" \
         -RG "$fcell"_"$lane" \
         -SM "$upsamp" \
@@ -96,7 +97,7 @@ if [[ "$fq_pattern" == *fastq.gz ]] || [[ "$fq_pattern" == *fq.gz ]]; then
         -LB "$upsamp"_lib
 else
     gatk FastqToSam \
-        -F1 "$fq1" \
+        -F1 "$fq" \
         -F2 "$fq2" \
         -O "$out_dir"/"$out_bam" \
         -RG "$fcell"_"$lane" \
