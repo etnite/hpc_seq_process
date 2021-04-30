@@ -83,15 +83,15 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_raw_v1_variants/v1_raw_variants.bcf"
-out_dir="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_miss08_maf003_variants/v1_miss08_maf003_variants.bcf"
+vcf_in="/autofs/bioinformatics-ward/bcftools_filt_test/in_sanity_check_production.bcf"
+out_dir="/autofs/bioinformatics-ward/bcftools_filt_test/output"
 samp_file="none"
-min_maf=0.03
-max_miss=0.8
-max_het=1
+min_maf=0.05
+max_miss=0.5
+max_het=0.1
 min_dp=0
-max_dp=1e6
-het2miss="true"
+max_dp=1e9
+het2miss="false"
 snpgap=3
 indelgap=3
 
@@ -177,16 +177,17 @@ if [[ "$het2miss" == [Tt] ]]; then
         --samples-file "${out_dir}/temp_files/samp_file.txt" \
         --min-alleles 2 \
         --max-alleles 2 \
+        --regions-file "${out_dir}/temp_files/${label}.bed" \
         --output-type u |
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "$het_string" |
-    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING |
     bcftools view - \
-        --regions-file "${out_dir}/temp_files/${label}.bed" \
         --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
         --output-type u |
-    bcftools filter --SnpGap $snpgap \
+    bcftools filter - \
+        --SnpGap $snpgap \
         --IndelGap $indelgap \
         --output-type b \
         --output "${out_dir}/${label}.bcf"
@@ -195,13 +196,14 @@ else
         --samples-file "${out_dir}/temp_files/samp_file.txt" \
         --min-alleles 2 \
         --max-alleles 2 \
-        --output-type u |
-    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
-    bcftools view - \
         --regions-file "${out_dir}/temp_files/${label}.bed" \
+        --output-type u |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING |
+    bcftools view - \
         --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
         --output-type u |
-    bcftools filter --SnpGap $snpgap \
+    bcftools filter - \
+        --SnpGap $snpgap \
         --IndelGap $indelgap \
         --output-type b \
         --output "${out_dir}/${label}.bcf"
@@ -212,7 +214,7 @@ if [[ $array_ind -eq 0 ]]; then
     bcftools index -c "${out_dir}/${label}.bcf"
 
     ## Generate summary stats
-    bcftools stats "$vcf_out" > "${out_dir}/stats.txt"
+    bcftools stats "${out_dir}/${label}.bcf" > "${out_dir}/stats.txt"
 
     ## Create plots from summary stats
     mkdir "${out_dir}/plots"

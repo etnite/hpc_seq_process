@@ -34,13 +34,14 @@
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
-module load bowtie2
+#module load bowtie2
 
 
 #### User-defined constants ####
 
-ref_file="/project/genolabswheatphg/v2_refseq/iwgsc_refseqv2.0_all_chromosomes.fa"
-nthreads=$SLURM_NTASKS
+ref_file="/autofs/bioinformatics-ward/CSv1_ref/nugen_flanking/nugen_CSv1_150bp_flank.fasta"
+#nthreads=$SLURM_NTASKS
+nthreads=4
 
 
 #### Executable ####
