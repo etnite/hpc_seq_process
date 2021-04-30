@@ -1,50 +1,67 @@
 #!/bin/bash
 set -e
 
-
-## Filter VCF file variant-wise and sample-wise - single threaded
+## Filter VCF file - parallel
 ##
 ## Brian Ward
 ## brian@brianpward.net
 ## https://github.com/etnite
 ##
-## This script filters a VCF file, both variant-wise and sample-wise. It does this
-## in the following order:
-##   1. Filter variants according to thresholds and retain only user-specified samples
-##   2. Optionally filter samples using thresholds
+## This script filters a VCF file variant-wise. It will also subset samples based
+## on a user-defined list of sample names, if supplied.
 ##
-## NOTE: The max_miss parameter works in an opposite manner of the VCFTools
-## implementation, which I find unintuitive. Here, if max_miss is set to 1, SNPs with 100%
-## missing data would theoretically be allowed, while setting max_miss to 0 will only
-## allow SNPs without any missing data
+## The script takes two positional, command-line arguments:
+##   1) The path to a .bed file defining regions of VCF file to extract and filter.
+##      This file must be sorted by chromosome and then start position, and should
+##      not contain any overlapping regions.
+##   2) An integer, defining which line of the .bed file to use. Supplying 0 will
+##      use all lines of the .bed file. This integer will typically be supplied
+##      by a parallel dispatch script, which will allow for filtering multiple
+##      regions simultaneously.
 ##
-## The user can supply a file listing names of samples to keep, one per line. This can
-## contain two columns, which is useful if you want to list samples to keep and in the future
-## give them new names in column two using the script rename_annotate_split_vcf.sh. Only the
-## first column will be used in this script. SAMPLES ARE ALWAYS SORTED in the output,
-## regardless of whether sample subsetting is performed.
+## All other constants are set within the script, below this description.
 ##
-## For depth filtering, this script uses the DP value in the INFO column. This
-## value is the total depth of reads that passed the quality control parameters
-## defined during SNP calling, (e.g. minimum mapq value). FORMAT DP values, if
-## present, are for raw read counts per sample.
+## Whether the input is a VCF or BCF file, the output will always be a BCF file.
+## If using all regions, the output file will be placed in the user-defined
+## output directory as "all_regions.bcf". If a single region is filtered, then
+## the output BCF file will have a name formatted as [region_integer]_[chrom]_[start]_[end].bcf
+## The integer in the file name is formatted with leading zeroes to allow concatenation
+## of multiple BCF files without a sorting step. For instance, an output BCF file name
+## of region number 15 out of 1000 might be formatted as:
 ##
-## snpgap will remove SNPs within n bases of an indel (or overlapping)
-## indelgap will thin clusters of indels within n bases of each other, to only retain one
-## This script will only retain biallelic variants.
+##   0015_2A_100000_200000.bcf
 ##
-## BCFTools is designed to work with .bcf files. If .vcf files are supplied, it
-## first converts them to .bcf format internally. Therefore, using a .bcf file
-## as input is faster, though BCF files may be larger than .vcf.gz files.
+## NOTES:
 ##
-## The script will output to either a .bcf file or .vcf.gz depending on the supplied
-## file extension
+##   The max_miss parameter works in an opposite manner of the VCFTools
+##   implementation, which I find unintuitive. Here, if max_miss is set to 1, SNPs with 100%
+##   missing data would theoretically be allowed, while setting max_miss to 0 will only
+##   allow SNPs without any missing data
 ##
-## The script will then create summary statistics using bcftools stats, and will
-## attempt to create plots of these statistics using the plot-vcfstats script that
-## is bundled with bcftools. Python 3 and matplotlib are required for this step.
-## If they aren't installed, an error will be printed, but it will not otherwise
-## effect the VCF/BCF file output by the script.
+##   Samples in the output file will always be sorted.
+##
+##   Filtering to only retain biallelic variants, only retain SNPs, etc. must
+##   be hand-coded into the first bcftools call in the piped command
+##
+##   The input VCF/BCF file must be indexed, and must include contig lines in
+##   the header.
+##
+##   A regions .bed file is still required if filtering an entire VCF. This can
+##   be created from the contig lines in the VCF header, e.g.:
+##
+##     bcftools view -h [input.vcf.gz] | grep "##contig" | sed -e 's/##contig=<ID=//' -e 's/,length=/\t0\t/' -e 's/[,>$]//'
+##
+##   For depth filtering, this script uses the DP value in the INFO column. This
+##   value is the total depth of reads that passed the quality control parameters
+##   defined during SNP calling, (e.g. minimum mapq value). FORMAT DP values, if
+##   present, are for raw read counts per sample.
+##
+##   snpgap will remove SNPs within n bases of an indel (or overlapping)
+##   indelgap will thin clusters of indels within n bases of each other, to only retain one
+##
+##   BCFTools is designed to work with .bcf files. If .vcf files are supplied, it
+##   first converts them to .bcf format internally. Therefore, using a .bcf file
+##   as input is faster, though BCF files may be larger than .vcf.gz files.
 ################################################################################
 
 
@@ -62,15 +79,12 @@ set -e
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
 
-#### User-defined constants ####
+#### User-defined constants ####################################################
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
 vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_raw_v1_variants/v1_raw_variants.bcf"
 out_dir="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_miss08_maf003_variants/v1_miss08_maf003_variants.bcf"
-#regions_bed=""
-#vcf_in="/lustre/project/genolabswheatphg/US_excap/v1_variants/1A_filt_test/1A_v1_raw_variants.bcf"
-#vcf_out="/lustre/project/genolabswheatphg/US_excap/v1_variants/1A_filt_test/new_code_1A_v1_filt_variants.bcf"
 samp_file="none"
 min_maf=0.03
 max_miss=0.8
@@ -93,20 +107,18 @@ echo
 echo "Start time:"
 date
 
-array_ind=$1
-regions_bed=$2
+regions_bed=$1
+array_ind=$2
 
-## Get first letter of true/false het2miss option
+## Get first letter of true/false het2miss option and
 ## Set some constants depending on het2miss
 het2miss="${het2miss:0:1}"
 if [[ "$het2miss" == [Tt] ]]; then
 	max_het="NA"
 	het_string="./."
-else
-	het_string="1/0"
 fi
 
-
+## Output filtering parameters and generate the samples file
 if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
     mkdir -p "$out_dir"
     mkdir -p "${out_dir}/temp_files"
@@ -114,7 +126,7 @@ if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
     ## Echo input parameters to output dir
     echo -e "Input VCF\t${vcf_in}" > "${out_dir}/filt_params.txt"
     echo -e "Regions .bed file\t${regions_bed}" >> "${out_dir}/filt_params.txt"
-    echo -e "Taxa subset list\t${samp_file}" >> "${out_dir}/filt_params.txt"
+    echo -e "Sample subset list\t${samp_file}" >> "${out_dir}/filt_params.txt"
     echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}/filt_params.txt"
     echo -e "Max missing proportion\t${max_miss}" >> "${out_dir}/filt_params.txt"
     echo -e "Max het. proportion\t${max_het}" >> "${out_dir}/filt_params.txt"
@@ -124,19 +136,19 @@ if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
     echo -e "SNP overlap gap\t${snpgap}" >> "${out_dir}/filt_params.txt"
     echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}/filt_params.txt"
 
-    ## If samp_file exists, use to subset samples
-    ## Otherwise retain all samples present in file
+    ## If samp_file exists, use it to subset samples
+    ## Otherwise retain all samples present in the input file
     if [[ -f "$samp_file" ]]; then
         cut -f 1 "$samp_file" | sort > "${out_dir}/temp_files/samp_file.txt"
     else
         bcftools query --list-samples "$vcf_in" | sort > "${out_dir}/temp_files/samp_file.txt"
     fi
 else
-    sleep 5s
+    sleep 10s
 fi
 
 ## If the supplied array_ind is 0, we copy full regions .bed file to temp dir.
-## Otherwise extract one region from .bed file
+## Otherwise extract single region from .bed file
 if [[ array_ind -eq 0 ]]; then
     label="all_regions"
     cp "$regions_bed" "${out_dir}/temp_files/${label}.bed"
@@ -154,74 +166,48 @@ fi
 
 
 
-## Get base name and extension of output file; set the output format
-#ext="${vcf_out#*.}"
-#base="${vcf_out%%.*}"
-#if [[ "$ext" == "bcf" ]]; then
-#    out_fmt="b"
-#elif [[ "$ext" == "gz" ]]; then
-#    ext="vcf.gz"
-#    out_fmt="z"
-#else
-#    echo "ERROR - Please supply either a .bcf or .vcf.gz file for output path"
-#    exit 1;
-#fi
-
-
-
-## Create output directory (if necessary) and temp directory
-#out_dir=$(dirname "${vcf_out}")
-#mkdir -p "${out_dir}"
-#temp_dir="$(mktemp -d -p "${out_dir}")"
-#if [[ ! "${out_dir}/temp_files" || ! -d "${out_dir}/temp_files" ]]; then
-#    echo "ERROR - Could not create temporary directory"
-#    exit 1;
-#fi
-
-
-## Echo input parameters to output dir
-#echo -e "Input VCF\t${vcf_in}" > "${base}_filt_params.txt"
-#echo -e "Output VCF\t${vcf_out}" >> "${base}_filt_params.txt"
-#echo -e "Taxa subset list\t${samp_file}" >> "${base}_filt_params.txt"
-#echo -e "Minimum MAF\t${min_maf}" >> "${base}_filt_params.txt"
-#echo -e "Max missing proportion\t${max_miss}" >> "${base}_filt_params.txt"
-#echo -e "Max het. proportion\t${max_het}" >> "${base}_filt_params.txt"
-#echo -e "Min. average depth\t${min_dp}" >> "${base}_filt_params.txt"
-#echo -e "Max average depth\t${max_dp}" >> "${base}_filt_params.txt"
-#echo -e "Unaligned contigs removed?\t${remove_unal}" >> "${base}_filt_params.txt"
-#echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${base}_filt_params.txt"
-#echo -e "SNP overlap gap\t${snpgap}" >> "${base}_filt_params.txt"
-#echo -e "Indel overlap gap\t${indelgap}" >> "${base}_filt_params.txt"
-
-
-
-#up_freq=$(echo "1 - $min_maf" | bc -l)
-
-## Big copy-pasted if-else block for different actions depending on remove_unal and het2miss
+## Big copy-pasted if-else block for different actions depending het2miss
 ## Using het2miss will leave you with some SNPs that only have one allele, so some extra steps
 ## Are necessary to get rid of these
 echo "Filtering VCF..."
 echo
 
-bcftools view "${vcf_in}" \
-    --samples-file "${out_dir}/temp_files/samp_file.txt" \
-    --min-alleles 2 \
-    --max-alleles 2 \
-    --output-type u |
-bcftools +setGT --output-type u - -- --target-gt q \
-    --include 'GT="het"' \
-    --new-gt "$het_string" |
-bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
-bcftools view - \
-    --regions-file "${out_dir}/temp_files/${label}.bed" \
-    --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
-    --output-type u |
-bcftools filter --SnpGap $snpgap \
-    --IndelGap $indelgap \
-    --output-type b \
-    --output "${out_dir}/${label}.bcf"
+if [[ "$het2miss" == [Tt] ]]; then
+    bcftools view "${vcf_in}" \
+        --samples-file "${out_dir}/temp_files/samp_file.txt" \
+        --min-alleles 2 \
+        --max-alleles 2 \
+        --output-type u |
+    bcftools +setGT --output-type u - -- --target-gt q \
+        --include 'GT="het"' \
+        --new-gt "$het_string" |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
+    bcftools view - \
+        --regions-file "${out_dir}/temp_files/${label}.bed" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
+        --output-type u |
+    bcftools filter --SnpGap $snpgap \
+        --IndelGap $indelgap \
+        --output-type b \
+        --output "${out_dir}/${label}.bcf"
+else
+    bcftools view "${vcf_in}" \
+        --samples-file "${out_dir}/temp_files/samp_file.txt" \
+        --min-alleles 2 \
+        --max-alleles 2 \
+        --output-type u |
+    bcftools +fill-tags --output-type u -- -t MAF,F_MISSING |
+    bcftools view - \
+        --regions-file "${out_dir}/temp_files/${label}.bed" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --output-type u |
+    bcftools filter --SnpGap $snpgap \
+        --IndelGap $indelgap \
+        --output-type b \
+        --output "${out_dir}/${label}.bcf"
+fi
 
-
+## If a whole VCF/BCF file was filtered, generate some summary stats and plots
 if [[ $array_ind -eq 0 ]]; then
     bcftools index -c "${out_dir}/${label}.bcf"
 
