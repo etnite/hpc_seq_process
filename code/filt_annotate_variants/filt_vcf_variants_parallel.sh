@@ -83,12 +83,12 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/autofs/bioinformatics-ward/bcftools_filt_test/in_sanity_check_production.bcf"
-out_dir="/autofs/bioinformatics-ward/bcftools_filt_test/output"
+vcf_in="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/in_sanity_check/raw_VCF/in_sanity_check_production.vcf.gz"
+out_dir="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/in_sanity_check/raw_VCF/test_filt_out"
 samp_file="none"
-min_maf=0.05
-max_miss=0.5
-max_het=0.1
+min_maf=0.1
+max_miss=0.33
+max_het=0.2
 min_dp=0
 max_dp=1e9
 het2miss="false"
@@ -182,9 +182,9 @@ if [[ "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "$het_string" |
-    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,F_HET=AC_Het/NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (COUNT(GT=\"het\") / COUNT(GT!~\"\.\")) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || INFO/F_HET > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
@@ -198,9 +198,9 @@ else
         --max-alleles 2 \
         --regions-file "${out_dir}/temp_files/${label}.bed" \
         --output-type u |
-    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
@@ -223,7 +223,7 @@ fi
 
 ## Generate summary stats using TASSEL
 #echo "Generating summary statistics with TASSEL..."
-#$TASSEL_PL -vcf "${vcf_out}" \
+#$TASSEL_PL -vcf "${out_dir}/${label}.vcf.gz" \
 #           -GenotypeSummaryPlugin \
 #           -endPlugin \
 #           -export "${out_dir}"/summary
