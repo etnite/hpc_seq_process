@@ -39,8 +39,9 @@
 
 #### User-defined constants ####
 
-ref_file="/home/gbg_lab_admin/Array_60TB/GBS_Reference_Genomes/Ensembl_v41_IWGSC_v1.0/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-nthreads=8
+ref_file="/autofs/bioinformatics-ward/CSv1_ref/nugen_flanking/nugen_CSv1_150bp_flank.fasta"
+#nthreads=$SLURM_NTASKS
+nthreads=4
 
 
 #### Executable ####

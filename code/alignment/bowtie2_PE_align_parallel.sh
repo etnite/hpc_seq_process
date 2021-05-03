@@ -44,9 +44,9 @@ shopt -s nullglob
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
-patterns_file="/home/brian.ward/search_pattern_files/failed_align_fqs.txt"
-out_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
+fastq_dir="/project/genolabswheatphg/US_excap/filt_fastqs"
+patterns_file="/home/brian.ward/search_pattern_files/ags_la_filt_fqs.txt"
+out_dir="/project/genolabswheatphg/US_excap/v1_alignments"
 ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
 ## Convert sample name in RG line of BAM header to uppercase? (TRUE/FALSE)

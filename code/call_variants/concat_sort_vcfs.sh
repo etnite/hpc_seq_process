@@ -25,7 +25,7 @@
   ##SBATCH --ntasks=28  #Number of overall tasks - overrides tasks per node
 #SBATCH --ntasks-per-node=10 #number of cores/tasks
 #SBATCH --time=48:00:00 #time allocated for this job hours:mins:seconds
-#SBATCH --mail-user=jane.doe@isp.com #enter your email address to receive emails
+#SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
@@ -36,9 +36,9 @@
 ## Path to text file listing input VCFs or BCFs, one per line
 ## Path to reference genome .fasta file
 ## Path to write output BCF file to
-vcfs_list="/home/brian.ward/US_excap_region_bcfs.txt"
-ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-out_bcf="/project/guedira_seq_map/brian/US_excap/v1_variants/US_excap_raw_variants.bcf"
+vcfs_list="/home/brian.ward/v1_region_bcfs_list.txt"
+ref_gen="/lustre/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+out_bcf="/lustre/project/genolabswheatphg/US_excap/v1_variants/brian_raw_v1_variants/v1_raw_variants.bcf"
 
 ## Maximum memory to use, which can be set to, e.g. "3G" for 3 gigabytes
 max_memory="10G"

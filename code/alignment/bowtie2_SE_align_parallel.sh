@@ -39,19 +39,22 @@
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/project/guedira_seq_map/brian/US_excap/filt_fastqs"
-patterns_file="/home/brian.ward/search_pattern_files/NOT_v1_hapmap_filt_fqs.txt"
-out_dir="/project/guedira_seq_map/brian/US_excap/v1_alignments"
-ref="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+fastq_dir="/autofs/bioinformatics-ward/MRAseq_v2_test_set/fastqs"
+patterns_file="/home/ward.1660/pattern_files/MRAseq_test_fqs.txt"
+out_dir="/autofs/bioinformatics-ward/MRAseq_v2_test_set/bams"
+ref="/autofs/bioinformatics-ward/CSv1_ref_chromparts/161010_Chinese_Spring_v1.0_pseudomolecules_parts.fasta"
 
-## Convert sample name to uppercase? (TRUE/FALSE)
+## Convert sample name to uppercase? (TRUE/FALSE) 
 name2upper="TRUE"
+
+## Number of threads - set to $SLURM_NTASKS to use number of available cores defined by scheduler
+nthreads=4
 
 
 #### Executable  ####
 
-module load bowtie2
-module load samtools
+#module load bowtie2
+#module load samtools
 
 echo
 echo "Start bowtie2_SE_align_parallel.sh"
@@ -108,7 +111,7 @@ fi
 ## Run bowtie2
 ref="${ref%.*}"
 bowtie2 -x "$ref" \
-        --threads $SLURM_NTASKS \
+        --threads $nthreads \
         --rg-id "${samp}.${fcell}.${lane}.${bcode}" \
         --rg SM:"$samp" \
         --rg PL:ILLUMINA \

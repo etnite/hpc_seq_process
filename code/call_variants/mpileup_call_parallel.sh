@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-
 ## Parallel mpileup and variant calling
 ##
 ## Brian Ward
@@ -39,10 +38,10 @@ set -e
 
 #### User-defined constants ####
 
-bams_list="/home/brian.ward/US_excap_bam_list.txt"
-ref_gen="/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+bams_list="/home/brian.ward/search_pattern_files/v1_bam_list.txt"
+ref_gen="/lustre/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 regions_file="/home/brian.ward/region_files/v1_100Mb_window_regions.txt"
-out_dir="/project/guedira_seq_map/brian/US_excap/v1_variants/region_bcfs"
+out_dir="/project/genolabswheatphg/US_excap/v1_variants/region_bcfs"
 mq_val=20
 
 
