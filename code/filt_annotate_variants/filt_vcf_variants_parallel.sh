@@ -62,6 +62,15 @@ set -e
 ##   BCFTools is designed to work with .bcf files. If .vcf files are supplied, it
 ##   first converts them to .bcf format internally. Therefore, using a .bcf file
 ##   as input is faster, though BCF files may be larger than .vcf.gz files.
+##
+##   The output file will contain some additional INFO tags, including MAF, F_MISSING
+##   (the frequency of missing data), AC_Het (The count of reference alleles in
+##    heterozygous calls), and NS (number of samples with data)
+##
+##   The presence of multi-allelic SNPs may make the het. filtering slightly inaccurate.
+##   The current implementation relies on a het. call always containing one REF
+##   allele. However, if there is more than one ALT allele, then a variant may
+##   contain 0 REF alleles while still being het.
 ################################################################################
 
 
@@ -182,9 +191,9 @@ if [[ "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "$het_string" |
-    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,F_HET=AC_Het/NS |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || INFO/F_HET > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
