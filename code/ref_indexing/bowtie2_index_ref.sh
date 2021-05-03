@@ -34,13 +34,13 @@
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
-module load bowtie2
+#module load bowtie2
 
 
 #### User-defined constants ####
 
-ref_file="/project/genolabswheatphg/v2_refseq/iwgsc_refseqv2.0_all_chromosomes.fa"
-nthreads=$SLURM_NTASKS
+ref_file="/home/gbg_lab_admin/Array_60TB/GBS_Reference_Genomes/Ensembl_v41_IWGSC_v1.0/Triticum_aestivum.IWGSC.dna.toplevel.fa"
+nthreads=8
 
 
 #### Executable ####
@@ -51,7 +51,7 @@ echo "Start time:"
 date
 
 ind_name="${ref_file%.*}"
-bowtie2-build --threads $nthreads "${ref_file}" "${ind_name}"
+bowtie2-build --large-index --threads $nthreads "${ref_file}" "${ind_name}"
 
 echo
 echo "End time:"
