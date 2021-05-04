@@ -12,6 +12,10 @@
 ## is placed in the same directory with the input file, with "samp_filt" inserted
 ## before the extension. The file will output either a bgzipped VCF file or a BCF
 ## file depending on the type of file supplied as input.
+##
+## NOTE that the filtering will be slightly inaccurate in the presence of indels,
+## as the bcftools stats command reports statistics on these separately from
+## the SNP per-sample counts that are utilized in this script.
 ###############################################################################
 
 
@@ -39,11 +43,11 @@ if [[ "$ext" == "gz" ]]; then ext="vcf.gz"; fi
 vcf_out="${base}_samp_filt.${ext}"
 
 ## Write filtering parameters to output directory
-echo -e "Input VCF\t${vcf_in}" > "${base}_samp_filt_params.txt"
-echo -e "Output VCF\t${vcf_out}" >> "${base}_samp_filt_params.txt"
-echo -e "Sample subset list\t${samp_file}" >> "${base}_samp_filt_params.txt"
-echo -e "Max. missing threshold\t${max_miss}" >> "${base}_samp_filt_params.txt"
-echo -e "Max. het. threshold\t${max_het}" >> "${base}_samp_filt_params.txt"
+echo -e "Input VCF\t${vcf_in}" > "${base}_samplewise_filt_params.txt"
+echo -e "Output VCF\t${vcf_out}" >> "$${base}_samplewise_filt_params.txt"
+echo -e "Sample subset list\t${samp_file}" >> "$${base}_samplewise_filt_params.txt"
+echo -e "Max. missing threshold\t${max_miss}" >> "${base}_samplewise_filt_params.txt"
+echo -e "Max. het. threshold\t${max_het}" >> "${base}_samplewise_filt_params.txt"
 
 ## Set the file type for output file
 if [[ "$ext" == "bcf" ]]; then

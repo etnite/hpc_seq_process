@@ -92,11 +92,11 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/IL_production/raw_VCF/IL2021_production.bcf"
-out_dir="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/IL_production/filt_VCF"
-samp_file="none"
+vcf_in="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/IL_production/filt_VCF/all_regions_samp_filt.bcf"
+out_dir="/home/gbg_lab_admin/Array_60TB/http_share/IL_NorGrains/2021_VCF"
+samp_file="/home/gbg_lab_admin/Array_60TB/http_share/IL_NorGrains/2021_VCF/IL_2021_samples.txt"
 min_maf=0.005
-max_miss=0.8
+max_miss=1
 max_het=1
 min_dp=0
 max_dp=1e9
@@ -133,18 +133,18 @@ if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
     mkdir -p "${out_dir}/temp_files"
 
     ## Echo input parameters to output dir
-    echo -e "Input VCF\t${vcf_in}" > "${out_dir}/vars_filt_params.txt"
-    echo -e "Output directory\t${out_dir}" > "${out_dir}/vars_filt_params.txt"
-    echo -e "Regions .bed file\t${regions_bed}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Sample subset list\t${samp_file}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Max missing proportion\t${max_miss}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Max het. proportion\t${max_het}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Min. average depth\t${min_dp}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Max average depth\t${max_dp}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "SNP overlap gap\t${snpgap}" >> "${out_dir}/vars_filt_params.txt"
-    echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}/vars_filt_params.txt"
+    echo -e "Input VCF\t${vcf_in}" > "${out_dir}/varwise_filt_params.txt"
+    echo -e "Output directory\t${out_dir}" > "${out_dir}/varwise_filt_params.txt"
+    echo -e "Regions .bed file\t${regions_bed}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Sample subset list\t${samp_file}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Max missing proportion\t${max_miss}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Max het. proportion\t${max_het}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Min. depth\t${min_dp}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Max depth\t${max_dp}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "SNP overlap gap\t${snpgap}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}/varwise_filt_params.txt"
 
     ## If samp_file exists, use it to subset samples
     ## Otherwise retain all samples present in the input file
