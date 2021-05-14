@@ -22,8 +22,8 @@
 #### User-defined Constants ############
 
 samp_file="none"
-max_miss=0.85
-max_het=1
+max_miss=0.8
+max_het=0.33
 
 
 #### Executable ########################
@@ -44,8 +44,8 @@ vcf_out="${base}_samp_filt.${ext}"
 
 ## Write filtering parameters to output directory
 echo -e "Input VCF\t${vcf_in}" > "${base}_samplewise_filt_params.txt"
-echo -e "Output VCF\t${vcf_out}" >> "$${base}_samplewise_filt_params.txt"
-echo -e "Sample subset list\t${samp_file}" >> "$${base}_samplewise_filt_params.txt"
+echo -e "Output VCF\t${vcf_out}" >> "${base}_samplewise_filt_params.txt"
+echo -e "Sample subset list\t${samp_file}" >> "${base}_samplewise_filt_params.txt"
 echo -e "Max. missing threshold\t${max_miss}" >> "${base}_samplewise_filt_params.txt"
 echo -e "Max. het. threshold\t${max_het}" >> "${base}_samplewise_filt_params.txt"
 

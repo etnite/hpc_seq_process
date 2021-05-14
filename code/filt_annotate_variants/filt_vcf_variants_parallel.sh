@@ -92,14 +92,14 @@ set -e
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/NORGRAINS_Apr2021/IL_production/filt_VCF/all_regions_samp_filt.bcf"
-out_dir="/home/gbg_lab_admin/Array_60TB/http_share/IL_NorGrains/2021_VCF"
-samp_file="/home/gbg_lab_admin/Array_60TB/http_share/IL_NorGrains/2021_VCF/IL_2021_samples.txt"
-min_maf=0.005
-max_miss=1
-max_het=1
-min_dp=0
-max_dp=1e9
+vcf_in="/autofs/bioinformatics-ward/NY_subset/NY_2021_subset_raw.bcf"
+out_dir="/autofs/bioinformatics-ward/NY_subset/filt_VCF"
+samp_file="none"
+min_maf=0.05
+max_miss=0.25
+max_het=0.15
+min_dp=5
+max_dp=1e6
 het2miss="false"
 snpgap=3
 indelgap=3
