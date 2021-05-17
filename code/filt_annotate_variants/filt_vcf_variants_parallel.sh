@@ -94,7 +94,7 @@ set -e
 
 vcf_in="/autofs/bioinformatics-ward/NY_subset/NY_2021_subset_raw.bcf"
 out_dir="/autofs/bioinformatics-ward/NY_subset/filt_VCF"
-samp_file="none"
+samp_file="/autofs/bioinformatics-ward/NY_subset/NY_no_biparental_lines.txt"
 min_maf=0.05
 max_miss=0.25
 max_het=0.15

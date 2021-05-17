@@ -21,6 +21,10 @@ set -e
 ## However, this can be set to any string that isn't a valid file to run Beagle
 ## without a genetic map.
 ##
+## The script is configured to run entire wheat chromosomes at once. To disable
+## this, either modify the window argument in the lines starting with java -jar, or
+## else comment them out.
+##
 ## The output is a bgzipped VCF file in the same directory as the input file, with
 ## "_imp" inserted before the file extension. 
 ################################################################################
@@ -49,8 +53,8 @@ n_threads=$3
 
 #### Executable ####
 
-module load java
-module load bcftools
+#module load java
+#module load bcftools
 
 echo
 echo "Start time:"
@@ -60,37 +64,39 @@ date
 ext="${vcf_in#*.}"
 base="${vcf_in%%.*}"
 base="${vcf_in%%.*}"
-vcf_out="${base}_imp.vcf.gz"
+vcf_out="${base}_imp"
 
 ## If working with a BCF file, we first have to convert to VCF
 if [[ "$ext" == "bcf" ]]; then
     bcftools view "$vcf_in" -Oz -o "${base}.vcf.gz"
     vcf_in="${base}.vcf.gz"
-elif [[ "$ext" == "gz" ]]; then
+elif [[ "$ext" == "gz" || "$ext" == "vcf.gz" ]]; then
     :
 else
-    echo "ERROR - Please supply either a .bcf or .vcf.gz file for output path"
+    echo "ERROR - Please supply either a .bcf or .vcf.gz file for input path"
     exit 1;
 fi
 
 ## Run Beagle with or without map file
+echo
 if [[ -f "$map_file" ]]; then
-    java -jar $beajar gt="$vcf_in" out="$vcf_out" map="$map_file" nthreads=$SLURM_NTASKS
+    echo "Imputing with map file"    
+    java -jar $beajar gt="$vcf_in" out="$vcf_out" map="$map_file" nthreads=$n_threads window=205
 else
-    java -jar $beajar gt="$vcf_in" out="$vcf_out" nthreads=$SLURM_NTASKS
+    echo "Imputing without map file"
+    java -jar $beajar gt="$vcf_in" out="$vcf_out" nthreads=$n_threads window=205
 fi
 
 ## Update the header in the output VCF to include contig info
-zcat "$vcf_in" | head -n 500 | grep "^##contig" > "${base}_contigs.txt"
-zcat "$vcf_out" | head -n 500 | grep "^##" > "${base}_new_header.txt"
-cat "${base}_contigs.txt" >> "${base}_new_header.txt"
-zcat "$vcf_out" | head -n 500 | grep "^#CHROM" >> "${base}_new_header.txt"
-bcftools reheader "$vcf_out" --header "${base}_new_header.txt" --output "${base}_temp.vcf.gz"
-mv "${base}_temp.vcf.gz" "$vcf_out"
+bcftools view --header-only "${vcf_out}.vcf.gz" | grep "^##" > "${base}_new_header.txt"
+bcftools view --header-only "$vcf_in" | grep "^##contig" >> "${base}_new_header.txt"
+bcftools view --header-only "${vcf_out}".vcf.gz | grep "^#CHROM" >> "${base}_new_header.txt"
+bcftools reheader "${vcf_out}.vcf.gz" --header "${base}_new_header.txt" --output "${base}_temp.vcf.gz"
+mv "${base}_temp.vcf.gz" "${vcf_out}.vcf.gz"
 
-#rm "${base}_contigs.txt" "${base}_new_header.txt" "${base}_temp.vcf.gz"
+rm "${base}_new_header.txt"
 
-bcftools index "$vcf_out"
+bcftools index "${vcf_out}.vcf.gz"
 
 echo
 echo "End time:"
