@@ -32,6 +32,7 @@
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
 module load hisat2
+module load samtools
 
 
 #### User-defined constants ####
@@ -45,6 +46,10 @@ echo
 echo "Start hisat2_index_ref.sh"
 echo "Start time:"
 date
+
+if [[ ! -f "${ref_file}.fai" ]]; then
+    samtools faidx "$ref_file"
+fi
 
 ind_name="${ref_file%.*}"
 hisat2-build "${ref_file}" "${ind_name}"

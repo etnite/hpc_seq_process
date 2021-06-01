@@ -37,7 +37,8 @@
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
-module load miniconda
+module load bwa
+module load samtools
 
 
 #### User-defined constants ####
@@ -52,11 +53,11 @@ echo "Start bwa_index_ref.sh"
 echo "Start time:"
 date
 
-source activate bwa
+if [[ ! -f "${ref_file}.fai" ]]; then
+    samtools faidx "$ref_file"
+fi
 
 bwa index -a bwtsw "${ref_file}"
-
-source deactivate
 
 echo
 echo "End time:"
