@@ -39,27 +39,31 @@
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/autofs/bioinformatics-ward/MRAseq_v2_test_set/fastqs"
-patterns_file="/home/ward.1660/pattern_files/MRAseq_test_fqs.txt"
-out_dir="/autofs/bioinformatics-ward/MRAseq_v2_test_set/bams"
-ref="/autofs/bioinformatics-ward/CSv1_ref_chromparts/161010_Chinese_Spring_v1.0_pseudomolecules_parts.fasta"
+fastq_dir="/project/guedira_seq_map/Allegro_test/filt_fastq"
+patterns_file="/home/brian.ward/samp_and_file_lists/Allegro_filt_fqs_list.txt"
+out_dir="/project/guedira_seq_map/Allegro_test/bams"
+ref="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
 
 ## Convert sample name to uppercase? (TRUE/FALSE) 
 name2upper="TRUE"
 
 ## Number of threads - set to $SLURM_NTASKS to use number of available cores defined by scheduler
-nthreads=4
+nthreads=$SLURM_NTASKS
 
 
 #### Executable  ####
 
-#module load bowtie2
-#module load samtools
+module load singularity/3.7.1
+module load bowtie2
+module load samtools
 
 echo
 echo "Start bowtie2_SE_align_parallel.sh"
 echo "Start time:"
 date
+
+echo
+echo "Number of cores: ${nthreads}"
 
 ## Input sanity check
 name2upper="${name2upper^^}"

@@ -23,25 +23,16 @@
 
 #### User-defined constants ####
 
-#in_dir="/project/genolabswheatphg/merged_fastqs/KS_HRW_excap"
-#adapt_fasta="/home/brian.ward/repos/wheat_phg/TruSeq_paired_adapters.fa"
-#samp_file="/home/brian.ward/repos/wheat_phg/sample_lists/KS_HRW_reform_samples.txt"
-#out_dir="/project/genolabswheatphg/filt_fastqs/test_output"
-
-#in_dir="/project/genolabswheatphg/merged_fastqs/wheatCAP_parents"
-#adapt_fasta="/home/brian.ward/repos/wheat_phg/TruSeq_paired_adapters.fa" 
-#samp_file="/home/brian.ward/repos/wheat_phg/sample_lists/wheatCAP_samples_reform.txt" 
-#out_dir="/project/genolabswheatphg/filt_fastqs/wheatCAP_parents" 
-
-in_dir="/project/genolabswheatphg/merged_fastqs/v1_hapmap"
-adapt_fasta="/home/brian.ward/repos/wheat_phg/TruSeq_paired_adapters.fa"
-samp_file="/home/brian.ward/repos/wheat_phg/sample_lists/v1_hapmap_bioproj/sample_names.txt"
-out_dir="/project/genolabswheatphg/filt_fastqs/v1_hapmap"
+in_dir="/project/guedira_seq_map/Allegro_test/raw_fastq"
+adapt_fasta="/home/brian.ward/Downloads/adapters.fa"
+samp_file="/home/brian.ward/samp_and_file_lists/Allegro_raw_fq_samp_list.txt"
+out_dir="/project/guedira_seq_map/Allegro_test/filt_fastq"
 
 
 #### Executable  ####
 
-module load bbtools
+module load singularity/3.7.1
+module load bbmap
 
 echo
 echo "Start bbduk_filt_trim_paired_parallel.sh"
@@ -52,7 +43,7 @@ mkdir -p "${out_dir}"
 array_ind=$1
 
 ## Get length of adapters
-ad_len=$(head -n 2 "${adapt_fasta}" | tail -n -1 | wc -c)
+#ad_len=$(head -n 2 "${adapt_fasta}" | tail -n -1 | wc -c)
 
 ## Get sample name
 samp=$(head -n "${array_ind}" "${samp_file}" | tail -n 1)
@@ -63,9 +54,9 @@ samp=$(head -n "${array_ind}" "${samp_file}" | tail -n 1)
 ## maq=13 ~5%
 ## maq=15 ~3%
 ## maq=20 1%
-bbduk.sh -Xmx10g in="${in_dir}"/"${samp}".fastq.gz \
-    out="${out_dir}"/"${samp}".fastq.gz \
-    ref="${adapt_fasta}" ktrim=r k=$ad_len mink=10 hdist=3 hdist2=1 ftm=5 maq=13 minlen=75
+bbduk.sh -Xmx28g in="${in_dir}/${samp}.fastq.gz" \
+    out="${out_dir}/${samp}.fastq.gz" \
+    ref="${adapt_fasta}" ktrim=r k=25 mink=10 hdist=3 hdist2=1 ftm=5 maq=13 minlen=75
 
 echo
 echo "End time:"
