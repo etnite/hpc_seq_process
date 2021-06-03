@@ -17,15 +17,23 @@
 ##
 ## This script defines an array of integers, from one to a user-defined maximum.
 ## Typically, each integer will then be used to subset a single line from a file
-## that lists samples (one per line). Note that this file is defined in whatever
-## script this one is dispatching (set with the script constant)
+## that might list samples, files, genomic regions, etc.
+##
+## The user can optionally specify the file to iterate over as iter_file. If this
+## is set to any string that is not a valid filename, then it assumes that the
+## path to the file to iterate over is supplied within the script being called.
 ################################################################################
 
 
 #### User-Defined Constants ####
 
-max_iter=10
+## To specify file to iterate through here, supply its path for iter_file.
+## Otherwise set iter_file to a string that is not a valid file name, like "none"
+## or "nothing". In this case the file to iterate over should be set in the
+## script that is being called.
 script="concat_fastqs.sh"
+iter_file="nothing"
+max_iter=10
 
 
 #### Executable ####
@@ -37,9 +45,17 @@ echo "${script}"
 echo "Start time:"
 date
 
-for i in "${iter[@]}"; do
-    bash "${script}" $i
-done
+if [[ -f "$iter_file" ]]; then
+    for i in "${iter[@]}"; do
+        bash "$script" "$iter_file" $i
+    done
+else
+    for i in "${iter[@]}"; do
+        bash "$script" $i
+    done
+fi
+
+
 
 echo
 echo "End time:"

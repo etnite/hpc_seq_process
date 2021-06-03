@@ -6,16 +6,24 @@
 ## brian@brianpward.net
 ## https://github.com/etnite
 ##
-## This script is a "universal parallelizer" - it's intended function is to
+## This script is a "universal parallelizer" - its intended function is to
 ## enable the parallel execution of another script WHEN DIFFERENT PROCESSES
 ## CAN BE RUN INDEPENDENTLY, such as when running the same process on different
 ## samples, as is common in bioinformatics.
 ##
-## This script must read in an array to use as the parallel iterator. This is
-## typically a text file containing a list of some kind with one entry per line.
-## Each entry in this list is then fed into whatever script is being called as a
-## positional argument. SLURM then handles the parallel execution. Additional 
-## parameters often must be set in the script that is being called.
+## This script uses an array of integers (set in the line starting with
+## "#SBATCH --array=") to perform parallel dispatch for the script it is calling.
+## These integers are typically used to subset out individual lines of a file
+## that is iterated over. For instance, setting "#SBATCH --array=1-10" will
+## subset out lines 1 - 10 of the file being iterated over, and supply them to
+## ten different instances of the script being called. In this case, each
+## instance of the script that is run would receive one of the first ten lines
+## of the iterated file as a positional input argument. Typically, the file that
+## is iterated over lists samples, filenames, or genomic regions.
+##
+## The user can optionally specify the file to iterate over as iter_file. If this
+## is set to any string that is not a valid filename, then it assumes that the
+## path to the file to iterate over is supplied within the script being called.
 ################################################################################
 
 
@@ -38,7 +46,12 @@
 
 #### User-Defined Constants ####
 
+## To specify file to iterate through here, supply its path for iter_file.
+## Otherwise set iter_file to a string that is not a valid file name, like "none"
+## or "nothing". In this case the file to iterate over should be set in the
+## script that is being called.
 script="alignment/bowtie2_align_parallel.sh"
+iter_file="nothing"
 
 
 #### Executable ####
@@ -48,7 +61,11 @@ echo "${script}"
 echo "Start time:"
 date
 
-bash $script $SLURM_ARRAY_TASK_ID
+if [[ -f "$iter_file" ]]; then
+    bash "$script" "$iter_file" $SLURM_ARRAY_TASK_ID
+else
+    bash "$script" $SLURM_ARRAY_TASK_ID
+fi
 
 echo
 echo "End time:"
