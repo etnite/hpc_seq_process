@@ -31,12 +31,12 @@ using Statistics
 ## Iterate through stdin lines
 for line in eachline(stdin)
 
-    ## Get mean and median vals if necessary
     chopped = split(line)
     chrom = chopped[1]
     pos = parse(UInt32, chopped[2])
     depths = parse.(UInt16, chopped[3:end])
 
+    ## Print to stdout
     println(join(
         chrom,
         string(pos - 1),
