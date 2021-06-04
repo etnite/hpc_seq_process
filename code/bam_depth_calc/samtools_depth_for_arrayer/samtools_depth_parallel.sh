@@ -62,8 +62,6 @@ samtools depth -f "$bam_list_file" -b "${out_dir}/temp_files/${label}.bed" -d $m
     julia "$parse_script" |
     awk -v mm=$min_mdn 'BEGIN{OFS = "\t"} $7 >= mm {print $0}' > "${out_dir}/${label}.txt"
 
-rm -rf "${out_dir}/temp_files"
-
 echo
 echo "End time:"
 date

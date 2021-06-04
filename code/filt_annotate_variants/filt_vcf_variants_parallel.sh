@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 ## Filter VCF file - parallel
 ##
@@ -239,8 +238,6 @@ fi
 #           -GenotypeSummaryPlugin \
 #           -endPlugin \
 #           -export "${out_dir}"/summary
-
-rm -rf "${out_dir}/temp_files"
 
 echo
 echo "End time:"
