@@ -28,26 +28,28 @@ https://github.com/etnite
 
 using Statistics
 
+
 ## Iterate through stdin lines
 for line in eachline(stdin)
-
+  
     chopped = split(line)
     chrom = chopped[1]
     pos = parse(UInt32, chopped[2])
     depths = parse.(UInt16, chopped[3:end])
 
     ## Print to stdout
-    println(join(
-        chrom,
+    println(stdout, join(
+        [chrom,
         string(pos - 1),
         string(pos),
         string(sum(depths)),
-        string(min(depths)),
-        string(max(depths)),
+        string(minimum(depths)),
+        string(maximum(depths)),
         string(median(depths)),
         string(mean(depths)),
-        string(std(depths)),
-        delim = "\t"
+        string(std(depths))],
+        "\t"
     ))
+    flush(stdout)
 
 end
