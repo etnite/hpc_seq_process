@@ -7,6 +7,9 @@
 ## program must either be installed system-wide or else R/Rstudio must be started
 ## from within a Conda environment containing BCFTools.
 ##
+## NOTE that this script only uses biallelic variants - the summation of heterozygous
+## calls isn't straightforward for variants with > 2 alleles.
+##
 ## I have tried this script out on Linux and MacOS - no idea if it would work on
 ## Windows.
 ##
@@ -22,8 +25,8 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/Users/ward.1660/Downloads/VCF_filt_plot_test/all_regions_samp_filt.bcf"
-wkdir <- "/Users/ward.1660/Downloads/VCF_filt_plot_test"
+vcf_file <- "/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF/all_regions.bcf"
+wkdir <- "/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF/stats_plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
 delete_interfiles <- FALSE
@@ -39,9 +42,10 @@ dir.create("plots")
 #### Generate intermediate files ####
 
 ## Generate the relevant variants info .txt file
-system(sprintf("bcftools +fill-tags --output-type u %s -- -t MAF,F_MISSING,AC_Het,NS |
-            bcftools query -f '%%CHROM\t%%POS\t%%INFO/DP\t%%INFO/MAF\t%%INFO/F_MISSING\t%%INFO/AC_Het\t%%INFO/NS\n' |
-            gzip -c > %s", vcf_file, "var_stats.txt.gz"))
+system(sprintf("bcftools view %s --min-alleles 2 --max-alleles 2 --output-type u | 
+                bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
+                bcftools query -f '%%CHROM\t%%POS\t%%INFO/DP\t%%INFO/MAF\t%%INFO/F_MISSING\t%%INFO/AC_Het\t%%INFO/NS\n' |
+                gzip -c > %s", vcf_file, "var_stats.txt.gz"))
 
 ## And the samples info .txt file
 system(sprintf("bcftools stats -s - %s | 

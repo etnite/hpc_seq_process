@@ -4,3 +4,4 @@ slurm*
 *.log
 *.bam
 *.DS_Store*
+*.Rhistory

@@ -91,9 +91,9 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/autofs/bioinformatics-ward/NY_subset/NY_2021_subset_raw.bcf"
-out_dir="/autofs/bioinformatics-ward/NY_subset/filt_VCF"
-samp_file="/autofs/bioinformatics-ward/NY_subset/NY_no_biparental_lines.txt"
+vcf_in="/Users/ward.1660/Downloads/Allegro_groupA_BCF/groupA_mq20_Allegro_noKIMs.bcf"
+out_dir="/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF"
+samp_file="none"
 min_maf=0.05
 max_miss=0.25
 max_het=0.15
