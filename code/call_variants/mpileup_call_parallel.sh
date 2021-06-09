@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 ## Parallel mpileup and variant calling
 ##
@@ -7,22 +6,18 @@ set -e
 ## brian@brianpward.net
 ## https://github.com/etnite
 ##
-## This script performs variant calling using BCFTools, running the bcftools
-## mpileup and call commands for a single region. Note that this script DOES NOT
-## use .bed files to define regions. Rather, it uses samtools/bcftools region
-## files, where regions are defined as:
+## This script performs variant calling using BCFTools,
 ##
-##    chromosome:from-to
+## It takes two positional arguments. The first is a .bed file of genomic regions
+## and the second is an integer selecting which region to
+## perform mpileup/variant calling on. If 0 is provided as the integer, then
+## variant calling is performed on all regions in the file.
 ##
-## One region per line. Unlike .bed files, both the from and to positions are
-## 1-based. 
+## The script is designed to be used with a parallel dispatching script, such as
+## code/parallel_dispatch/arrayer.sh See code/make_regions_bed.py for a script
+## that creates non-overlapping windows across a reference genome.
 ##
-## This script performs variant calling on a single region. It is designed to be 
-## used with a parallel dispatching script, such as code/parallel_dispatch/arrayer.sh See
-## code/make_regions_file.py for a script that creates non-overlapping windows
-## across a reference genome. 
-##
-## A minimum mapping-quality threshold may be set. For bowtie2, probability of
+## A minimum mapping-quality threshold (mq) may be set. For bowtie2, probability of
 ## an incorrect alignment (p) is related to the mapping quality value (Q) by:
 ##
 ##   p = 10 ^ -(Q/10)
@@ -31,52 +26,72 @@ set -e
 ## A mapq score of 10 translates to a 10% chance
 ## A mapq score of 20 translates to a 1% chance, etc.
 ##
-## Currently the script only uses reads mapped in "proper pairs". This can be disabled
-## by deleting the "--rf 2" in the bcftools mpileup call.
+## Currently the script only uses reads mapped in "proper pairs". If using
+## single-ended sequencing this will remove all reads. This behavior can be disabled
+## by deleting the "--incl-flags 2" in the bcftools mpileup call.
 ################################################################################
 
 
 #### User-defined constants ####
 
-bams_list="/home/brian.ward/search_pattern_files/v1_bam_list.txt"
-ref_gen="/lustre/project/genolabswheatphg/v1_refseq/whole_chroms/Triticum_aestivum.IWGSC.dna.toplevel.fa"
-regions_file="/home/brian.ward/region_files/v1_100Mb_window_regions.txt"
-out_dir="/project/genolabswheatphg/US_excap/v1_variants/region_bcfs"
+bams_list="/home/brian.ward/samp_and_file_lists/groupA_bam_list.txt"
+ref_gen="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
+out_dir="/project/guedira_seq_map/Allegro_test/groupA_mq20_region_bcfs"
 mq_val=20
 
 
 #### Executable ####
 
+module load singularity/3.7.1
 module load bcftools
 
 echo
 echo "Start time:"
 date
 
-mkdir -p "$out_dir"
-array_ind=$1
+regions_bed=$1
+array_ind=$2
 
 
-## Get region
-region=$(head -n "$array_ind" "$regions_file" | tail -n 1)
+## Create output directory if array index is 0 or 1
+if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
+    mkdir -p "$out_dir"
+    mkdir "${out_dir}/temp_files"
+else
+    sleep 10s
+fi
+
+## If the supplied array_ind is 0, we copy full regions .bed file to temp dir.
+## Otherwise extract single region from .bed file
+if [[ array_ind -eq 0 ]]; then
+    label="all_regions"
+    cp "$regions_bed" "${out_dir}/temp_files/${label}.bed"
+else
+    ## This ensures output files will have names in order, to avoid needing to
+    ## sort after concattenating them together
+    n=$(($(wc -l < "$regions_bed" | wc -c) - 1))
+    prefix=$(printf "%0${n}d" $array_ind)
+
+    region=$(head -n $array_ind "$regions_bed" | tail -n 1)
+    suffix=$(echo "$region" | tr "\t" "_")
+    label="${prefix}_${suffix}"
+    echo "$region" > "${out_dir}/temp_files/${label}.bed"
+fi
+
 echo
-echo "Input genomic region: ${region}"
-
-## Reformat region for output file
-out_reg=$(echo "$region" | sed 's/:/_/' | sed 's/-/_/')
+echo "Input genomic region: ${label}"
 
 ## Perform the mpileup and calling
 bcftools mpileup --fasta-ref "$ref_gen" \
                  --bam-list "$bams_list" \
                  --min-MQ "$mq_val" \
-                 --regions "$region" \
-                 --incl-flags 2 \
+                 --regions-file "${out_dir}/temp_files/${label}.bed" \
                  --annotate FORMAT/DP,FORMAT/AD \
                  --output-type u |
    bcftools call --multiallelic-caller \
                  --variants-only \
                  --output-type b \
-                 --output "${out_dir}/${out_reg}.bcf"
+                 --output "${out_dir}/${label}.bcf"
 
 echo
 echo "End time:"
