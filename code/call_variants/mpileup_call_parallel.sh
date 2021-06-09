@@ -72,7 +72,7 @@ else
     n=$(($(wc -l < "$regions_bed" | wc -c) - 1))
     prefix=$(printf "%0${n}d" $array_ind)
 
-    region=$(head -n $array_ind "$regions_bed" | tail -n 1)
+    region=$(head -n $array_ind "$regions_bed" | tail -n 1 | cut -f 1-3)
     suffix=$(echo "$region" | tr "\t" "_")
     label="${prefix}_${suffix}"
     echo "$region" > "${out_dir}/temp_files/${label}.bed"
