@@ -18,6 +18,10 @@
 ##      by a parallel dispatch script, which will allow for filtering multiple
 ##      regions simultaneously.
 ##
+## You can create a .bed file of whole chromosomes/contigs from the contig lines in the VCF/BCF:
+##
+##   bcftools view -h <file.bcf> | grep "contig=" | sed -e 's/^.*ID=//' -e 's/,length=/\t0\t/' -e 's/>//' > file.bed
+##
 ## All other constants are set within the script, below this description.
 ##
 ## Whether the input is a VCF or BCF file, the output will always be a BCF file.
@@ -91,12 +95,12 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/Users/ward.1660/Downloads/Allegro_groupA_BCF/groupA_mq20_Allegro_noKIMs.bcf"
-out_dir="/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF"
+vcf_in="/Users/ward.1660/Allegro_test/groupA_mq20_Allegro_noKIMs_raw.bcf"
+out_dir="/Users/ward.1660/Allegro_test/20miss_10het_filt"
 samp_file="none"
 min_maf=0.05
-max_miss=0.25
-max_het=0.15
+max_miss=0.2
+max_het=0.1
 min_dp=5
 max_dp=1e6
 het2miss="false"
