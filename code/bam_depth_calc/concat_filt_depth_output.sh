@@ -1,4 +1,5 @@
 #!/bin/bash
+shopt -s extglob
 
 ## Merge samtools_depth_parallel.sh output
 ##
@@ -17,12 +18,12 @@
 
 #### User-Defined Constants ####
 
-in_dir=""
-out_bed=""
+in_dir="/home/gbg_lab_admin/Array_60TB/Allegro_test/bam_depth_calc_mq20_min_mdn4"
+out_bed="/home/gbg_lab_admin/Array_60TB/Allegro_test/mq20_min_mdn4.bed"
 
 
 #### Executable ####
 
-cat "${out_dir}/!(*header).txt" |
-    awk 'BEGIN{OFS="\t"} $7 >= 4 {print $1, $2, $3}' |
+cat "$in_dir"/!(*header).txt |
+    awk 'BEGIN{OFS = "\t"} $7 >= 4 {print $1, $2, $3, $4}' |
     bedtools merge -i stdin -d 150 -c 4 -o mean > "$out_bed"
