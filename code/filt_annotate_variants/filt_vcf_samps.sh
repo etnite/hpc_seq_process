@@ -80,7 +80,7 @@ bcftools stats -s - "$vcf_in" > "${temp_dir}/stats.txt"
 echo
 echo "Filtering VCF..."
 grep "^PSC" "${temp_dir}/stats.txt" |
-    grep -f "${temp_dir}/samp_file.txt" |
+    fgrep -f "${temp_dir}/samp_file.txt" |
     awk -v miss=$max_miss '$14/($4 + $5 + $6 + $14) <= miss {print $0}' |
     awk -v het=$max_het '$6/($4 + $5 + $6) <= het {print $3}' > "${temp_dir}/retain.txt"
 
