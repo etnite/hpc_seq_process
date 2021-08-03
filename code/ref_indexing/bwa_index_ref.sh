@@ -37,6 +37,7 @@
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
 #SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
 
+module load singularity/3.7.1
 module load bwa
 module load samtools
 
