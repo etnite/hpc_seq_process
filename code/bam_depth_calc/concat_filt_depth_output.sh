@@ -1,5 +1,4 @@
 #!/bin/bash
-shopt -s extglob
 
 ## Merge samtools_depth_parallel.sh output
 ##
@@ -16,14 +15,44 @@ shopt -s extglob
 ################################################################################
 
 
+#### SLURM job control parameters ####
+
+## Options with two comment chars are deactivated
+
+#SBATCH --account=guedira_seq_map
+#SBATCH --job-name="bed-cat"  #name of the job submitted
+#SBATCH --partition=atlas  #name of the queue you are submitting job to
+#SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
+#SBATCH --time=00:05:00 #time allocated for this job hours:mins:seconds
+    ##SBATCH --mail-user=ward.1660@osu.edu #enter your email address to receive emails
+#SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
+#SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
+#SBATCH --error="stderr.%j.%N" #optional but it prints our standard error
+
+
 #### User-Defined Constants ####
 
-in_dir="/home/gbg_lab_admin/Array_60TB/Allegro_test/bam_depth_calc_mq20_min_mdn4"
-out_bed="/home/gbg_lab_admin/Array_60TB/Allegro_test/mq20_min_mdn4.bed"
+in_dir="/project/guedira_seq_map/Allegro_test/bam_R_depth_calc_mq20_min_mdn4/"
+out_bed="/project/guedira_seq_map/Allegro_test/groupA_R_strand_depths_mq20_min_mdn4.bed"
+min_mdn=4
+merge_dist=150
 
 
 #### Executable ####
 
+echo
+echo "Start time:"
+date
+
+shopt -s extglob
+
+module load singularity/3.7.1
+module load bedtools
+
 cat "$in_dir"/!(*header).txt |
-    awk 'BEGIN{OFS = "\t"} $7 >= 4 {print $1, $2, $3, $4}' |
-    bedtools merge -i stdin -d 150 -c 4 -o mean > "$out_bed"
+    awk -v min_med=$min_mdn 'BEGIN{OFS = "\t"} $7 >= min_med {print $1, $2, $3, $4}' |
+    bedtools merge -i stdin -d $merge_dist -c 4 -o mean > "$out_bed"
+
+echo
+echo "End time:"
+date

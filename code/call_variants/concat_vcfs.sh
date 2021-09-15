@@ -38,9 +38,9 @@
 ## Path to text file listing input VCFs or BCFs, one per line
 ## Path to reference genome .fasta file
 ## Path to write output BCF file to
-vcfs_list="/home/brian.ward/samp_and_file_lists/groupA_chrom_bcfs.txt"
+vcfs_list="/home/brian.ward/samp_and_file_lists/groupB_Rstrand_region_bcfs_list.txt"
 ref_gen="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
-out_bcf="/project/guedira_seq_map/Allegro_test/groupA_mq20_Allegro_noKIMs.bcf"
+out_bcf="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCFs/R_strand/groupB_mq20_R_strand_raw.bcf"
 
 
 #### Executable ####

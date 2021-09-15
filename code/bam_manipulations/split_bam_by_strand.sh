@@ -68,6 +68,9 @@ echo "R out file: $r_file"
 samtools view -h "$bam_file" -q $mq_thresh -F 20 -b -o "$f_file"
 samtools view -h "$bam_file" -q $mq_thresh -f 16 -b -o "$r_file"
 
+samtools index -c "$f_file"
+samtools index -c "$r_file"
+
 echo
 echo "End time:"
 date

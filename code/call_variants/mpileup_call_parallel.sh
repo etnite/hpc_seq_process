@@ -34,9 +34,9 @@
 
 #### User-defined constants ####
 
-bams_list="/home/brian.ward/samp_and_file_lists/groupA_bam_list.txt"
+bams_list="/home/brian.ward/samp_and_file_lists/groupB_R_bams.txt"
 ref_gen="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
-out_dir="/project/guedira_seq_map/Allegro_test/groupA_mq20_region_bcfs"
+out_dir="/project/guedira_seq_map/Allegro_test/groupB_mq20_region_Rstrand_bcfs"
 mq_val=20
 
 
@@ -85,11 +85,11 @@ echo "Input genomic region: ${label}"
 bcftools mpileup --fasta-ref "$ref_gen" \
                  --bam-list "$bams_list" \
                  --min-MQ "$mq_val" \
+                 --max-depth 1000 \
                  --regions-file "${out_dir}/temp_files/${label}.bed" \
                  --annotate FORMAT/DP,FORMAT/AD \
                  --output-type u |
    bcftools call --multiallelic-caller \
-                 --variants-only \
                  --output-type b \
                  --output "${out_dir}/${label}.bcf"
 

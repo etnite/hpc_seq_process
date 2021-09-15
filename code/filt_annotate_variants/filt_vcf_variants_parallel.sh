@@ -79,12 +79,13 @@
 
 #### SLURM job control ####
 
+#SBATCH -A guedira_seq_map
 #SBATCH --job-name="filt-vcf" #name of the job submitted
-#SBATCH --partition=short #name of the queue you are submitting job to
+#SBATCH --partition=atlas #name of the queue you are submitting job to
   ##SBATCH --nodes=1 #Number of nodes
 #SBATCH --ntasks=1  #Number of overall tasks - overrides tasks per node
   ##SBATCH --ntasks-per-node=22 #number of cores/tasks
-#SBATCH --time=06:00:00 time allocated for this job hours:mins:seconds
+#SBATCH --time=05:00:00  #time allocated for this job hours:mins:seconds
 #SBATCH --mail-user=bpward2@ncsu.edu #enter your email address to receive emails
 #SBATCH --mail-type=BEGIN,END,FAIL #will receive an email when job starts, ends or fails
 #SBATCH --output="stdout.%j.%N" # standard out %j adds job number to outputfile name and %N adds the node name
@@ -95,13 +96,13 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/Users/ward.1660/Allegro_test/groupA_mq20_Allegro_noKIMs_raw.bcf"
-out_dir="/Users/ward.1660/Allegro_test/20miss_10het_filt"
+vcf_in="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCFs/both_strands/groupB_mq20_both_strands_raw.bcf"
+out_dir="/project/guedira_seq_map/Allegro_test/groupB_mq20_filt_VCFs/both_strands"
 samp_file="none"
 min_maf=0.05
-max_miss=0.2
+max_miss=0.5
 max_het=0.1
-min_dp=5
+min_dp=4
 max_dp=1e6
 het2miss="false"
 snpgap=3
@@ -111,6 +112,8 @@ indelgap=3
 #### Executable ################################################################
 
 ## Using conda here to utilize bcftools plugins and plot-vcfstats
+module load singularity/3.7.1
+module load bcftools
 #module load bcftools
 #module load miniconda
 #source activate htslib

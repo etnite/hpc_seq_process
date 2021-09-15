@@ -56,12 +56,12 @@
 ##   of reads in order to save time
 ## min_qual specifies minimum read mapping quality to include a read
 ## min_mdn specifies the minimum required median read depth to output a position
-parse_script="/home/brian.ward/repos/hpc_seq_process/code/bam_depth_calc/samtools_depth_for_arrayer/samtools_depth_parse.jl"
-bam_list_file="/home/brian.ward/samp_and_file_lists/groupA_bam_list.txt"
+parse_script="/home/brian.ward/repos/hpc_seq_process/code/bam_depth_calc/samtools_depth_parse.jl"
+bam_list_file="/home/brian.ward/samp_and_file_lists/groupA_R_bams.txt"
 max_dp=200
-min_qual=0
+min_qual=20
 min_mdn=4
-out_dir="/project/guedira_seq_map/Allegro_test/bam_depth_calc_mq0_min_mdn4"
+out_dir="/project/guedira_seq_map/Allegro_test/bam_R_depth_calc_mq20_min_mdn4"
 
 
 #### Executable ################################################################
