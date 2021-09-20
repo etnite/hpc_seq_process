@@ -96,8 +96,8 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCFs/both_strands/groupB_mq20_both_strands_raw.bcf"
-out_dir="/project/guedira_seq_map/Allegro_test/groupB_mq20_filt_VCFs/both_strands"
+vcf_in="/Users/ward.1660/OSU_OneDrive/Allegro_assay_dev/groupB_files/groupB_mq20_raw_VCFs/R_strand/groupB_mq20_R_strand_raw.bcf"
+out_dir="/Users/ward.1660/OSU_OneDrive/Allegro_assay_dev/groupB_files/groupB_mq20_filt_VCFs/R_strand"
 samp_file="none"
 min_maf=0.05
 max_miss=0.5
