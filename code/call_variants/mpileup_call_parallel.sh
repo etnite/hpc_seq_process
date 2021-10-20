@@ -90,6 +90,7 @@ bcftools mpileup --fasta-ref "$ref_gen" \
                  --annotate FORMAT/DP,FORMAT/AD \
                  --output-type u |
    bcftools call --multiallelic-caller \
+                 --variants-only \
                  --output-type b \
                  --output "${out_dir}/${label}.bcf"
 

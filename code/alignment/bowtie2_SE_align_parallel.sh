@@ -39,9 +39,9 @@
 
 ## Reference genome fasta ("ref") must already be indexed using bowtie2-build
 ## and samtools index
-fastq_dir="/project/guedira_seq_map/Allegro_test/filt_fastq"
-patterns_file="/home/brian.ward/samp_and_file_lists/Allegro_filt_fqs_list.txt"
-out_dir="/project/guedira_seq_map/Allegro_test/bams"
+fastq_dir="/project/guedira_seq_map/Allegro_test/left_trim_fastq"
+patterns_file="/home/brian.ward/samp_and_file_lists/Allegro_left_trim_fq_patterns.txt"
+out_dir="/project/guedira_seq_map/Allegro_test/left_trim_bams"
 ref="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
 
 ## Convert sample name to uppercase? (TRUE/FALSE) 

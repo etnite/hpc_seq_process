@@ -50,7 +50,7 @@ array_ind=$2
 #ad_len=$(head -n 2 "${adapt_fasta}" | tail -n -1 | wc -c)
 
 ## Get sample name
-infile=$(head -n "${array_ind}" "${samp_file}" | tail -n 1)
+infile=$(head -n "${array_ind}" "${fasta_list}" | tail -n 1)
 base=$(basename "$infile")
 outfile="${out_dir}/${base}"
 

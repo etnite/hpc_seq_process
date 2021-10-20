@@ -38,9 +38,11 @@
 ## Path to text file listing input VCFs or BCFs, one per line
 ## Path to reference genome .fasta file
 ## Path to write output BCF file to
-vcfs_list="/home/brian.ward/samp_and_file_lists/groupB_Rstrand_region_bcfs_list.txt"
+vcfs_list="/home/brian.ward/samp_and_file_lists/groupB_Fstrand_region_bcfs_list.txt"
+#vcfs_list="/home/brian.ward/samp_and_file_lists/groupB_left_trim_region_bcf_list.txt"
 ref_gen="/project/guedira_seq_map/ref_genomes/v1_refseq_w_KIMs/CSv1_refseq_w_KIMs.fa"
-out_bcf="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCFs/R_strand/groupB_mq20_R_strand_raw.bcf"
+out_bcf="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCFs/F_strand_w_MAF/groupB_mq20_Fstrand_raw.bcf"
+#out_bcf="/project/guedira_seq_map/Allegro_test/groupB_mq20_raw_VCSs/left_trimmed/groupB_mq20_left_trimmed_raw.bcf"
 
 
 #### Executable ####
@@ -69,7 +71,9 @@ bcftools annotate --no-version \
 bcftools norm --no-version \
     --fasta-ref "$ref_gen" \
     --threads $SLURM_NTASKS \
-    --output-type b > "$out_bcf"
+    --output-type u |
+bcftools +fill-tags -Ob -- -t MAF > "$out_bcf"
+
  
 bcftools index -c "$out_bcf"
 
