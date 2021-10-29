@@ -91,8 +91,8 @@ bcftools mpileup --fasta-ref "$ref_gen" \
                  --output-type u |
    bcftools call --multiallelic-caller \
                  --variants-only \
-                 --output-type b \
-                 --output "${out_dir}/${label}.bcf"
+                 --output-type b |
+   bcftools +fill-tags -Ob -- -t AC,AC_Het,MAF,F_MISSING > "${out_dir}/${label}.bcf"
 
 echo
 echo "End time:"
