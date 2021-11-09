@@ -34,10 +34,10 @@
 ##### User-Defined Constants ##########
 
 ## Path to place normalized BCF files
-out_dir=""
+out_dir="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/all_nurseries_Nov_2021/raw_VCF/nurseries_norgrains_merge"
 
 ## Path to reference genome
-ref_genome=""
+ref_genome="/home/gbg_lab_admin/Array_60TB/GBS_Reference_Genomes/Ensembl_v41_IWGSC_v1.0/Triticum_aestivum.IWGSC.dna.toplevel.fa"
 
 ## true/false specifying whether to only retain biallelic SNPs following normalization
 biallelic_snps_only="true"
@@ -86,11 +86,19 @@ for i in "${vcf_array[@]}"; do
     normed_file="${out_dir}/${base}"
     normed_file="${normed_file%.*}"
     normed_file="${normed_file%.*}"
-    normed_file="${normed_file}.bcf"
+    if [[ "$biallelic_snps_only" == [Tt] ]]; then
+        normed_file="${normed_file}_normed_biallelic_snps.bcf"
+    else
+        normed_file="${normed_file}_normed.bcf"
+    fi
     echo "$normed_file" >> "${out_dir}/normed_list.txt"
+
+    echo
+    echo "Normalizing file $i"
 
     if [[ "$biallelic_snps_only" == [Tt] ]]; then
         bcftools norm "$i" \
+            --fasta-ref "$ref_genome" \
             --check-ref s \
             --multiallelics +both \
             --output-type u |
@@ -99,11 +107,15 @@ for i in "${vcf_array[@]}"; do
                 --output "$normed_file"
     else
         bcftools norm "$i" \
+            --fasta-ref "$ref_genome" \
             --check-ref s \
             --multiallelics +both \
             --output-type b \
             --output "$normed_file"
     fi
+
+    echo
+    echo "Indexing file $normed_file"
     bcftools index -c "$normed_file"
 done
 

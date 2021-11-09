@@ -42,11 +42,17 @@ nthreads="$4"
 biallelic_snps_only="${biallelic_snps_only:0:1}"
 
 ## Create indices if not present
-for i in "$in_list"; do
-    if [[ ! -f "${i}.csi" ]]; then bcftools index --threads $nthreads -c "$i"; fi
-done
+while read i; do
+    if [[ ! -f "${i}.csi" ]]; then 
+        echo
+        echo "Indexing input file ${i}..."
+        bcftools index --threads $nthreads -c "$i"
+    fi
+done <"$in_list"
 
 ## Perform the merge
+echo
+echo "Performing merge..."
 if [[ "$biallelic_snps_only" == [Tt] ]]; then
     bcftools merge --file-list "$in_list" \
         --force-samples \
@@ -64,6 +70,9 @@ else
         --output-type u \
         --output "$out_file"
 fi
+
+echo
+echo "Indexing merged file..."
 bcftools index --threads $nthreads -c "$out_file"
 
 
