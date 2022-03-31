@@ -25,11 +25,11 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF/all_regions.bcf"
-wkdir <- "/Users/ward.1660/Downloads/Allegro_groupA_BCF/filt_VCF/stats_plots"
+vcf_file <- "/autofs/bioinformatics-ward/2022_Norgrains_VCFs/except_KY/filt_80miss_3maf_10het_5dp/all_regions_samp_filt.bcf"
+wkdir <- "/autofs/bioinformatics-ward/2022_Norgrains_VCFs/except_KY/filt_80miss_3maf_10het_5dp/vars_+_samp_filt_stats_+_plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
-delete_interfiles <- FALSE
+delete_interfiles <- TRUE
 
 
 #### Executable ################################################################
@@ -59,6 +59,7 @@ system(sprintf("bcftools stats -s - %s |
 vars <- read_tsv("var_stats.txt.gz", col_names = FALSE)
 names(vars) <- c("chrom", "pos", "dp", "maf", "f_miss", "ac_het", "ns")
 vars$f_het <- vars$ac_het / vars$ns
+vars$mean_nonmiss_dp <- vars$dp / vars$ns
 
 ## Read in the samples info and define both missing freq. and het. freq.
 samps <- read_tsv("samp_stats.txt.gz", col_names = FALSE,
@@ -70,7 +71,7 @@ samps$f_het <- samps$n_het/(samps$n_ref_hom + samps$n_nonref_hom + samps$n_het)
 
 ## Calculate some variant-wise and sample-wise stats and write out
 samp_stats <- describe(samps[c("f_miss", "f_het", "avg_depth")], fast = TRUE)
-vars_stats <- describe(vars[c("dp", "maf", "f_miss", "f_het")], fast = TRUE)
+vars_stats <- describe(vars[c("dp", "mean_nonmiss_dp", "maf", "f_miss", "f_het")], fast = TRUE)
 write.csv(samp_stats, "samplewise_statistics.csv")
 write.csv(vars_stats, "variantwise_statistics.csv")
 
@@ -135,9 +136,16 @@ plot01 <- ggplot(vars, aes(x = log10(dp))) +
   theme_minimal()
 ggsave("plots/variantwise_log_total_depth_hist.png", plot = plot01)
 
+plot01 <- ggplot(vars, aes(x = mean_nonmiss_dp) +
+  geom_histogram(bins = 50, color = "black", fill = "grey") +
+  ggtitle("Mean depth in samples with data") +
+  xlab("Mean Depth") +
+  ylab("n Variants") +
+  theme_minimal()
+ggsave("plots/variantwise_mean_nonmiss_depth_hist.png", plot = plot01)
 
-## Remove intermediate files if specified
+## Remove intermediate files if specified 
 if (delete_interfiles) {
-  file.remove("var_stats.txt.gz")
   file.remove("samp_stats.txt.gz")
+  file.remove("var_stats.txt.gz")
 }
