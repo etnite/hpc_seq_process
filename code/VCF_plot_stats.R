@@ -18,7 +18,7 @@
 ## to VCF files.
 ################################################################################
 rm(list = ls())
-library(readr)
+library(data.table)
 library(psych)
 library(ggplot2)
 
@@ -56,22 +56,22 @@ system(sprintf("bcftools stats -s - %s |
 #### Read in intermediate files and Calculate Stats ####
 
 ## Read in the variants info and define het. frequency
-vars <- read_tsv("var_stats.txt.gz", col_names = FALSE)
+vars <- fread("var_stats.txt.gz", header = FALSE, sep = "\t")
 names(vars) <- c("chrom", "pos", "dp", "maf", "f_miss", "ac_het", "ns")
 vars$f_het <- vars$ac_het / vars$ns
 vars$mean_nonmiss_dp <- vars$dp / vars$ns
 
 ## Read in the samples info and define both missing freq. and het. freq.
-samps <- read_tsv("samp_stats.txt.gz", col_names = FALSE,
-                  col_types = "--ciiiiiid---i")
+samps <- fread("samp_stats.txt.gz", header = FALSE, sep = "\t", 
+               select = c(3, 4, 5, 6, 7, 8, 9, 10, 14))
 names(samps) <- c("samp", "n_ref_hom", "n_nonref_hom", "n_het", "n_transt", 
                   "n_transv", "n_indel", "avg_depth", "n_miss")
 samps$f_miss <- samps$n_miss/(samps$n_ref_hom + samps$n_nonref_hom + samps$n_het + samps$n_miss)
 samps$f_het <- samps$n_het/(samps$n_ref_hom + samps$n_nonref_hom + samps$n_het)
 
 ## Calculate some variant-wise and sample-wise stats and write out
-samp_stats <- describe(samps[c("f_miss", "f_het", "avg_depth")], fast = TRUE)
-vars_stats <- describe(vars[c("dp", "mean_nonmiss_dp", "maf", "f_miss", "f_het")], fast = TRUE)
+samp_stats <- describe(samps[, c("f_miss", "f_het", "avg_depth")], fast = TRUE)
+vars_stats <- describe(vars[, c("dp", "mean_nonmiss_dp", "maf", "f_miss", "f_het")], fast = TRUE)
 write.csv(samp_stats, "samplewise_statistics.csv")
 write.csv(vars_stats, "variantwise_statistics.csv")
 
@@ -136,7 +136,7 @@ plot01 <- ggplot(vars, aes(x = log10(dp))) +
   theme_minimal()
 ggsave("plots/variantwise_log_total_depth_hist.png", plot = plot01)
 
-plot01 <- ggplot(vars, aes(x = mean_nonmiss_dp) +
+plot01 <- ggplot(vars, aes(x = mean_nonmiss_dp)) +
   geom_histogram(bins = 50, color = "black", fill = "grey") +
   ggtitle("Mean depth in samples with data") +
   xlab("Mean Depth") +
