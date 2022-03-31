@@ -102,8 +102,8 @@ samp_file="none"
 min_maf=0.05
 max_miss=0.5
 max_het=0.1
-min_dp=4
-max_dp=1e6
+min_mean_nonmiss_dp=4
+max_mean_nonmiss_dp=1e6
 het2miss="false"
 snpgap=3
 indelgap=3
@@ -146,8 +146,8 @@ if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
     echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Max missing proportion\t${max_miss}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Max het. proportion\t${max_het}" >> "${out_dir}/varwise_filt_params.txt"
-    echo -e "Min. depth\t${min_dp}" >> "${out_dir}/varwise_filt_params.txt"
-    echo -e "Max depth\t${max_dp}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Min. mean depth in samples with data\t${min_mean_nonmiss_dp}" >> "${out_dir}/varwise_filt_params.txt"
+    echo -e "Max mean depth in samples with data\t${max_mean_nonmiss_dp}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Heterozygous calls converted to missing data?\t${het2miss}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "SNP overlap gap\t${snpgap}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Indel overlap gap\t${indelgap}" >> "${out_dir}/varwise_filt_params.txt"
@@ -201,7 +201,7 @@ if [[ "$het2miss" == [Tt] ]]; then
         --new-gt "$het_string" |
     bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DP)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DP)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
@@ -218,7 +218,7 @@ else
         --output-type u |
     bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || INFO/DP < ${min_dp} || INFO/DP > ${max_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DP)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DP)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
