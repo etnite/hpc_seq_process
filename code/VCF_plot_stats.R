@@ -25,11 +25,11 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/autofs/bioinformatics-ward/2022_Norgrains_VCFs/except_KY/filt_80miss_3maf_10het_5dp/all_regions_samp_filt.bcf"
-wkdir <- "/autofs/bioinformatics-ward/2022_Norgrains_VCFs/except_KY/filt_80miss_3maf_10het_5dp/vars_+_samp_filt_stats_+_plots"
+vcf_file <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/norgrains_repeats_only_04012022.bcf"
+wkdir <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/test_vcf_stats"
 
 ## Remove BCFTools-generated files at the end (T/F)?
-delete_interfiles <- TRUE
+delete_interfiles <- FALSE
 
 
 #### Executable ################################################################
@@ -56,7 +56,7 @@ system(sprintf("bcftools stats -s - %s |
 #### Read in intermediate files and Calculate Stats ####
 
 ## Read in the variants info and define het. frequency
-vars <- fread("var_stats.txt.gz", header = FALSE, sep = "\t")
+vars <- fread("var_stats.txt.gz", header = FALSE, sep = "\t", na.strings = c("NA", "", "."))
 names(vars) <- c("chrom", "pos", "dp", "maf", "f_miss", "ac_het", "ns")
 vars$f_het <- vars$ac_het / vars$ns
 vars$mean_nonmiss_dp <- vars$dp / vars$ns
