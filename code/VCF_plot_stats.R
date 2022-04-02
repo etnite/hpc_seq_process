@@ -25,8 +25,8 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/norgrains_repeats_only_04012022.bcf"
-wkdir <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/test_vcf_stats"
+vcf_file <- "/autofs/bioinformatics-ward/Norgrains_tiledb_parentdir/100rand_samps_test/100samps_export.bcf"
+wkdir <- "/autofs/bioinformatics-ward/Norgrains_tiledb_parentdir/100rand_samps_test/stats_+_plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
 delete_interfiles <- FALSE
@@ -43,8 +43,8 @@ dir.create("plots")
 
 ## Generate the relevant variants info .txt file
 system(sprintf("bcftools view %s --min-alleles 2 --max-alleles 2 --output-type u | 
-                bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
-                bcftools query -f '%%CHROM\t%%POS\t%%INFO/DP\t%%INFO/MAF\t%%INFO/F_MISSING\t%%INFO/AC_Het\t%%INFO/NS\n' |
+                bcftools +fill-tags --output-type u - -- -t 'DPsum:1=int(sum(DP))',MAF,F_MISSING,AC_Het,NS |
+                bcftools query -f '%%CHROM\t%%POS\t%%INFO/DPsum\t%%INFO/MAF\t%%INFO/F_MISSING\t%%INFO/AC_Het\t%%INFO/NS\n' |
                 gzip -c > %s", vcf_file, "var_stats.txt.gz"))
 
 ## And the samples info .txt file
