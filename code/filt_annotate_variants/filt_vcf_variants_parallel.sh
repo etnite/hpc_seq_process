@@ -199,9 +199,9 @@ if [[ "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "$het_string" |
-    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t 'DP:1=int(sum(DP))',MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DP)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DP)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DPsum)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DPsum)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
@@ -216,9 +216,9 @@ else
         --types snps \
         --regions-file "${out_dir}/temp_files/${label}.bed" \
         --output-type u |
-    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t 'DP:1=int(sum(DP))',MAF,F_MISSING,AC_Het,NS |
     bcftools view - \
-        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DP)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DP)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
+        --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DPsum)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DPsum)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
     bcftools filter - \
         --SnpGap $snpgap \
