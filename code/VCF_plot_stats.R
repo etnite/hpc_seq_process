@@ -25,11 +25,11 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/100samps_export.bcf"
-wkdir <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/wkdir"
+vcf_file <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/filt_test/all_regions.bcf"
+wkdir <- "/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/filt_test/stats_plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
-delete_interfiles <- FALSE
+delete_interfiles <- TRUE
 
 
 #### Executable ################################################################

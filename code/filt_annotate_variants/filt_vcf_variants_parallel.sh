@@ -96,14 +96,14 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/Users/ward.1660/OSU_OneDrive/Allegro_assay_dev/groupB_files/groupB_mq20_raw_VCFs/R_strand/groupB_mq20_R_strand_raw.bcf"
-out_dir="/Users/ward.1660/OSU_OneDrive/Allegro_assay_dev/groupB_files/groupB_mq20_filt_VCFs/R_strand"
+vcf_in="/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/100samps_export.bcf"
+out_dir="/Users/ward.1660/Downloads/OSU_FAES_transfer/vcf_stats_plots_test/filt_test"
 samp_file="none"
 min_maf=0.05
 max_miss=0.5
 max_het=0.1
-min_mean_nonmiss_dp=4
-max_mean_nonmiss_dp=1e6
+min_mean_nonmiss_dp=5
+max_mean_nonmiss_dp=25
 het2miss="false"
 snpgap=3
 indelgap=3
@@ -199,7 +199,8 @@ if [[ "$het2miss" == [Tt] ]]; then
     bcftools +setGT --output-type u - -- --target-gt q \
         --include 'GT="het"' \
         --new-gt "$het_string" |
-    bcftools +fill-tags --output-type u - -- -t 'DPsum:1=int(sum(DP))',MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t 'DPsum:1=int(sum(DP))' |
     bcftools view - \
         --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DPsum)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DPsum)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
@@ -216,7 +217,8 @@ else
         --types snps \
         --regions-file "${out_dir}/temp_files/${label}.bed" \
         --output-type u |
-    bcftools +fill-tags --output-type u - -- -t 'DPsum:1=int(sum(DP))',MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t MAF,F_MISSING,AC_Het,NS |
+    bcftools +fill-tags --output-type u - -- -t 'DPsum:1=int(sum(DP))' |
     bcftools view - \
         --exclude "INFO/F_MISSING > ${max_miss} || INFO/MAF < ${min_maf} || (INFO/DPsum)/(INFO/NS) < ${min_mean_nonmiss_dp} || (INFO/DPsum)/(INFO/NS) > ${max_mean_nonmiss_dp} || (INFO/AC_Het)/(INFO/NS) > ${max_het}" \
         --output-type u |
