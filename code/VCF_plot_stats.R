@@ -18,6 +18,7 @@
 ## to VCF files.
 ################################################################################
 rm(list = ls())
+library(R.utils)
 library(data.table)
 library(psych)
 library(ggplot2)
@@ -25,11 +26,11 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/autofs/bioinformatics-ward/norgrains_tiledb02_prep/IL/filt_80miss_3maf_10het_5dp/all_regions.bcf"
-wkdir <- "/autofs/bioinformatics-ward/norgrains_tiledb02_prep/IL/filt_80miss_3maf_10het_5dp/IL_stats_+_plots"
+vcf_file <- "/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/filt_P+NUWWSN_20miss_05maf_10het/all_regions.bcf"
+wkdir <- "/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/filt_P+NUWWSN_20miss_05maf_10het/stats_+_plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
-delete_interfiles <- FALSE
+delete_interfiles <- TRUE
 
 
 #### Executable ################################################################
