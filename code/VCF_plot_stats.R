@@ -26,8 +26,8 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/filt_P+NUWWSN_20miss_05maf_10het/all_regions.bcf"
-wkdir <- "/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/filt_P+NUWWSN_20miss_05maf_10het/stats_+_plots"
+vcf_file <- "/autofs/bioinformatics-ward/VCF_generation/IL_2014-2022/filt_50miss_5maf_10het/all_regions.bcf"
+wkdir <- "/autofs/bioinformatics-ward/VCF_generation/IL_2014-2022/filt_50miss_5maf_10het/IL_filt_stats+plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
 delete_interfiles <- TRUE

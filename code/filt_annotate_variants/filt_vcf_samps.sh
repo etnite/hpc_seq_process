@@ -22,8 +22,8 @@
 #### User-defined Constants ############
 
 samp_file="none"
-max_miss=0.8
-max_het=0.33
+max_miss=0.85
+max_het=0.3
 
 
 #### Executable ########################

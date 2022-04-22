@@ -96,13 +96,13 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/raw_VCF/North_nurseries_2022-04-05_production.bcf"
-out_dir="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/filt_P+NUWWSN_25miss_05maf_10het_5dp"
-samp_file="/home/gbg_lab_admin/Array_60TB/Wheat_GBS/Northern_nurseries_Apr2022/raw_VCF/P+NUWWSN_samp_list.txt"
+vcf_in="/autofs/bioinformatics-ward/VCF_generation/Norgrains_2021+2022/filt_5maf_25miss_10het_4dp/all_regions_samp_filt_fullnames_nodup_imp.vcf.gz"
+out_dir="/autofs/bioinformatics-ward/VCF_generation/Purdue_sets_Apr2022/imputed/2022_AB"
+samp_file="/autofs/bioinformatics-ward/VCF_generation/Norgrains_2021+2022/filt_5maf_25miss_10het_4dp/2022_AB_line_list.txt"
 min_maf=0.05
-max_miss=0.25
-max_het=0.1
-min_mean_nonmiss_dp=5
+max_miss=1
+max_het=1
+min_mean_nonmiss_dp=0
 max_mean_nonmiss_dp=10000
 het2miss="false"
 snpgap=3

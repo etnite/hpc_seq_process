@@ -89,6 +89,7 @@ fi
 
 ## Update the header in the output VCF to include contig info
 bcftools view --header-only "${vcf_out}.vcf.gz" | grep "^##" > "${base}_new_header.txt"
+bcftools view --header-only "$vcf_in" | grep "<ID=DP," >> "${base}_new_header.txt"
 bcftools view --header-only "$vcf_in" | grep "^##contig" >> "${base}_new_header.txt"
 bcftools view --header-only "${vcf_out}".vcf.gz | grep "^#CHROM" >> "${base}_new_header.txt"
 bcftools reheader "${vcf_out}.vcf.gz" --header "${base}_new_header.txt" --output "${base}_temp.vcf.gz"
