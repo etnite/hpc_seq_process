@@ -96,12 +96,12 @@
 
 ## Note that SNP depth and proportion of missing data are highly correlated
 
-vcf_in="/autofs/bioinformatics-ward/VCF_generation/Norgrains_2021+2022/filt_5maf_25miss_10het_4dp/all_regions_samp_filt_fullnames_nodup_imp.vcf.gz"
-out_dir="/autofs/bioinformatics-ward/VCF_generation/Purdue_sets_Apr2022/imputed/2022_AB"
-samp_file="/autofs/bioinformatics-ward/VCF_generation/Norgrains_2021+2022/filt_5maf_25miss_10het_4dp/2022_AB_line_list.txt"
+vcf_in="/autofs/bioinformatics-ward/VCF_generation/OSU_samps_for_Nelly_Apr2022/OSU_samples_for_Nelly_April2022_raw.bcf"
+out_dir="/autofs/bioinformatics-ward/VCF_generation/OSU_samps_for_Nelly_Apr2022/filt_5maf_20miss_25het"
+samp_file="none"
 min_maf=0.05
-max_miss=1
-max_het=1
+max_miss=0.2
+max_het=0.25
 min_mean_nonmiss_dp=0
 max_mean_nonmiss_dp=10000
 het2miss="false"
@@ -140,7 +140,7 @@ if [[ $array_ind -eq 0 || $array_ind -eq 1 ]]; then
 
     ## Echo input parameters to output dir
     echo -e "Input VCF\t${vcf_in}" > "${out_dir}/varwise_filt_params.txt"
-    echo -e "Output directory\t${out_dir}" > "${out_dir}/varwise_filt_params.txt"
+    echo -e "Output directory\t${out_dir}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Regions .bed file\t${regions_bed}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Sample subset list\t${samp_file}" >> "${out_dir}/varwise_filt_params.txt"
     echo -e "Minimum MAF\t${min_maf}" >> "${out_dir}/varwise_filt_params.txt"

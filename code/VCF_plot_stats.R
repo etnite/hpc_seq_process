@@ -26,8 +26,8 @@ library(ggplot2)
 
 #### User-Defined Constants ####################################################
 
-vcf_file <- "/autofs/bioinformatics-ward/VCF_generation/IL_2014-2022/filt_50miss_5maf_10het/all_regions.bcf"
-wkdir <- "/autofs/bioinformatics-ward/VCF_generation/IL_2014-2022/filt_50miss_5maf_10het/IL_filt_stats+plots"
+vcf_file <- "/autofs/bioinformatics-ward/VCF_generation/OSU_samps_for_Nelly_Apr2022/OSU_samples_for_Nelly_April2022_raw.bcf"
+wkdir <- "/autofs/bioinformatics-ward/VCF_generation/OSU_samps_for_Nelly_Apr2022/Nelly_raw_BCF_stats+plots"
 
 ## Remove BCFTools-generated files at the end (T/F)?
 delete_interfiles <- TRUE
